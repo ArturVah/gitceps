@@ -19,7 +19,8 @@ case "$1" in
   rebase)
     # `git pull --rebase` labels its work "pull ..."; after stopping on a conflict and continuing,
     # the label is left only in the rebase's "(start)" entry in HEAD's reflog.
-    if [[ "${GIT_REFLOG_ACTION:-}" == pull* || "$(git reflog --format=%gs | grep -m1 -- ' (start): ')" == pull* ]]; then
+    started=$(git reflog -1 --grep-reflog=' (start): ' --format=%gs 2>/dev/null)
+    if [[ "${GIT_REFLOG_ACTION:-}" == pull* || "$started" == pull* ]]; then
       # The first rewritten commit sits right on top of the new base, so $old..$onto is what came in.
       onto=$(git rev-parse -q --verify "$new^") && pull_reaction "$old" "$onto"
       exit 0

@@ -8,7 +8,8 @@ status=$?
 
 # A clone checks out from nothing (previous HEAD is all zeros), and git logs it as "clone: from ...".
 # `worktree add`, submodules and a new repo's first checkout also start from zeros but log otherwise.
-if [ "$1" = "$ZERO" ] && [[ "$(git reflog -1 --format=%gs 2>/dev/null)" == "clone: "* ]] && enabled all && enabled clone; then
+if [ "$1" = "$ZERO" ] && [[ "$(git reflog -1 --format=%gs 2>/dev/null)" == "clone: "* ]] \
+   && enabled all && enabled clone; then
   play clone --ins "$(git ls-files | wc -l | tr -d ' ')" --msg "$(git log -1 --format=%s 2>/dev/null)" --remote "$(repo_name)"
 fi
 exit $status

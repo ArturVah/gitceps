@@ -22,7 +22,7 @@ run_own "$@" <<<"$refs" || exit
 
 tips=(); rewritten=0
 while read -r lref lsha rref rsha; do
-  [ -z "$lsha" ] || [ "$lsha" = "$ZERO" ] && continue   # no refs, or deleting a remote branch
+  if [ -z "$lsha" ] || [ "$lsha" = "$ZERO" ]; then continue; fi   # no refs, or deleting a remote branch
   tips+=("$lsha")
   # The remote has commits this push would drop: someone pushed first, or history was rewritten.
   if [ "$rsha" != "$ZERO" ] && ! git merge-base --is-ancestor "$rsha" "$lsha" 2>/dev/null; then
@@ -34,7 +34,7 @@ done <<<"$refs"
 # Commits the remote doesn't have yet, each counted once even when several refs share them.
 new_commits() { git log --format= "$@" "${tips[@]}" --not --remotes; }
 
-read -r ins del < <(new_commits --numstat | awk '$1 ~ /^[0-9]+$/ { i += $1; d += $2 } END { print i + 0, d + 0 }')
+read -r ins del < <(new_commits --numstat | line_counts)
 msg=$(git log -1 --format=%s "${tips[0]}")
 secret=""
 if enabled secrets; then

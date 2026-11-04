@@ -5,7 +5,7 @@
 set -euo pipefail
 
 main() {
-  local version="0.5.0" dest="$HOME/.gitceps"
+  local version="0.5.1" dest="$HOME/.gitceps"
 
   if [ "$(uname)" != Darwin ]; then
     echo "Gitceps only runs on macOS." >&2; exit 1
