@@ -1,6 +1,6 @@
 <div align="center">
 
-# Push Bro
+# Gitceps
 
 **A gym bro who lifts your code every time you `git push`**
 
@@ -15,16 +15,16 @@ A small macOS app and git hook. He pops up in the corner of your screen, reacts 
 macOS only. Requires Apple's Command Line Tools (`xcode-select --install`).
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/ArturVah/push-bro/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/ArturVah/gitceps/main/install.sh | bash
 ```
 
 Or with Homebrew:
 
 ```sh
-brew install ArturVah/tap/push-bro && push-bro on
+brew install ArturVah/tap/gitceps && gitceps on
 ```
 
-Both build the app on your Mac and turn Push Bro on for every repo. Each repo's own hooks keep running. Repos that set their own hooks folder, such as those using Husky, skip him.
+Both build the app on your Mac and turn Gitceps on for every repo. Each repo's own hooks keep running. Repos that set their own hooks folder, such as those using Husky, skip him.
 
 ## Quickstart
 
@@ -52,16 +52,16 @@ He appears in the bottom-right corner of the screen your mouse is on, for a few 
 ## Settings
 
 ```sh
-push-bro list                   # each switch and whether it's on
-push-bro disable push           # no animation when you push, in every repo
-push-bro disable all --here     # no animation in the repo you're in
-push-bro disable secrets        # skip the secret check
-push-bro off                    # turn Push Bro off completely
+gitceps list                   # each switch and whether it's on
+gitceps disable push           # no animation when you push, in every repo
+gitceps disable all --here     # no animation in the repo you're in
+gitceps disable secrets        # skip the secret check
+gitceps off                    # turn Gitceps off completely
 ```
 
-`enable` turns a switch back on, and `on` brings him back. `all` mutes the animation but keeps the secret check. Settings are stored in git config under `[pushbro]`, and `--here` writes to the current repo's `.git/config`. With the curl install, the command is `~/.push-bro/bin/push-bro`.
+`enable` turns a switch back on, and `on` brings him back. `all` mutes the animation but keeps the secret check. Settings are stored in git config under `[gitceps]`, and `--here` writes to the current repo's `.git/config`. With the curl install, the command is `~/.gitceps/bin/gitceps`.
 
-To uninstall, run `push-bro off` first, then `rm -rf ~/.push-bro` or `brew uninstall push-bro`. Skipping `off` leaves git looking for hooks in a folder that no longer exists, and your repos' own hooks stop running.
+To uninstall, run `gitceps off` first, then `rm -rf ~/.gitceps` or `brew uninstall gitceps`. Skipping `off` leaves git looking for hooks in a folder that no longer exists, and your repos' own hooks stop running.
 
 ## Secret check
 
@@ -74,7 +74,7 @@ If the match is a fake test value, push anyway with `git push --no-verify`. The 
 - **No sound yet:** he grunts in text only.
 - **Homebrew and Xcode:** Homebrew won't build from source while an installed Xcode is older than your macOS. Update Xcode, or use the curl installer.
 - **Browser preview:** clone the repo and open `preview.html` to watch every reaction without installing anything.
-- **Logs:** the app writes to `~/Library/Logs/push-bro.log`.
+- **Logs:** the app writes to `~/Library/Logs/gitceps.log`.
 
 ## License
 

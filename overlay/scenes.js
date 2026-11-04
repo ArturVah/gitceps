@@ -1,5 +1,5 @@
 "use strict";
-// What Push Bro does for each kind of push. To add a joke, this is the file to edit.
+// What the bro does for each kind of push. To add a joke, this is the file to edit.
 //
 // A scene is a list of steps, played one after another. A step can set:
 //   face      his expression: calm, bored, strain, scream, ouch, sus, proud, dead, shock, cool

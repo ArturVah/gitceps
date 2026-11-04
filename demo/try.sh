@@ -34,7 +34,7 @@ case "$1" in
     echo "teammate $RANDOM" >> "$teammate/teammate.txt"
     git -C "$teammate" add teammate.txt
     git -C "$teammate" -c user.name=Teammate -c user.email=teammate@example.com commit -qm "teammate's change"
-    git -C "$teammate" push -q --no-verify   # the teammate's push shouldn't show Push Bro
+    git -C "$teammate" push -q --no-verify   # the teammate's push shouldn't show the bro
     rm -rf "$teammate"
     echo "my change $RANDOM" >> README.md
     git commit -qam "feat: my change"

@@ -2,7 +2,7 @@
 private/
 
 # Build output and the demo's sandbox repos
-app/pushbro
+app/gitceps-app
 demo/repo/
 demo/demo-app.git/
 

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Push Bro preview</title>
+<title>Gitceps preview</title>
 <!-- Plays the same overlay.html the Mac app shows, next to a fake terminal. -->
 <style>
   :root { --bg:#fff; --ink:#1d1d1f; --muted:#6e6e73; --line:#d2d2d7; --desk:#e8e8ed; }
@@ -26,12 +26,12 @@
 </head>
 <body>
 <main>
-  <h1>Push Bro preview</h1>
+  <h1>Gitceps preview</h1>
   <p>The same animation the Mac app shows when you run <code>git push</code>.</p>
   <div class="pushes" id="pushes"></div>
   <div class="desk">
     <pre id="out"></pre>
-    <iframe id="bro" title="Push Bro animation"></iframe>
+    <iframe id="bro" title="Gitceps animation"></iframe>
   </div>
 </main>
 <script>
@@ -51,7 +51,7 @@ const PUSHES = {
   rejected: { label: "rejected",     push: { ins: 86, del: 12, msg: "feat: dark mode" },
               out: () => [["To " + REMOTE], [" ! [rejected]        main -> main (fetch first)", "err"], failed] },
   secret:   { label: ".env file",    push: { ins: 1, del: 0, msg: "chore: add config", secret: ".env" },
-              out: () => [["push-bro: NOPE. That looks like a secret (.env). Push blocked.", "warn"],
+              out: () => [["gitceps: NOPE. That looks like a secret (.env). Push blocked.", "warn"],
                           ["    If it's a fake test value: git push --no-verify", "dim"], failed] },
 };
 

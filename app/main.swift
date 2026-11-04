@@ -1,6 +1,6 @@
-// Push Bro's Mac app. Shows overlay/overlay.html in a see-through, click-through window in the
+// Gitceps' Mac app. Shows overlay/overlay.html in a see-through, click-through window in the
 // bottom-right corner of the screen under the mouse, plays one push, then quits.
-// Usage: pushbro --mode tiny|normal|huge|forklift|force|rejected|secret --ins N --del N --msg TEXT
+// Usage: gitceps-app --mode tiny|normal|huge|forklift|force|rejected|secret --ins N --del N --msg TEXT
 //                [--secret FILE] [--remote REPO]
 import AppKit
 import WebKit
@@ -57,7 +57,7 @@ final class Overlay: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKSc
 }
 
 func log(_ text: String) {
-    FileHandle.standardError.write(Data("pushbro: \(text)\n".utf8))
+    FileHandle.standardError.write(Data("gitceps: \(text)\n".utf8))
 }
 
 // Arguments come in "--name value" pairs. The page fills in defaults and converts numbers.
@@ -76,9 +76,9 @@ guard FileManager.default.fileExists(atPath: page.path) else {
     exit(1)
 }
 
-// One Push Bro on screen at a time. A push that arrives while he's busy waits its turn, for up to a
+// One bro on screen at a time. A push that arrives while he's busy waits its turn, for up to a
 // minute. The lock belongs to this process, so the system releases it when the app quits, even on a crash.
-let lockPath = FileManager.default.temporaryDirectory.appending(path: "push-bro.lock").path
+let lockPath = FileManager.default.temporaryDirectory.appending(path: "gitceps.lock").path
 let lock = open(lockPath, O_CREAT | O_RDWR, 0o600)
 let deadline = Date(timeIntervalSinceNow: 60)
 while lock >= 0 && flock(lock, LOCK_EX | LOCK_NB) != 0 {

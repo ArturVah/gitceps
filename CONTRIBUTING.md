@@ -4,14 +4,14 @@
 
 ```
 git push
-└── hooks/pre-push           runs the repo's own pre-push, measures the push, picks a reaction, blocks secrets
-    └── app/pushbro          Mac app (app/main.swift): a see-through, click-through window
-        └── overlay/overlay.html   the drawing (SVG)
-            ├── engine.js          moves and draws it, one clock for everything
-            └── scenes.js          what he does for each kind of push
+└── hooks/pre-push               runs the repo's own pre-push, measures the push, picks a reaction, blocks secrets
+    └── app/gitceps-app          Mac app (app/main.swift): a see-through, click-through window
+        └── overlay/overlay.html the drawing (SVG)
+            ├── engine.js        moves and draws it, one clock for everything
+            └── scenes.js        what he does for each kind of push
 ```
 
-`bin/push-bro on` points git's global `core.hooksPath` at `hooks/`. Every other hook name in that folder is a symlink to `hooks/forward`, which runs the repo's own hook of the same name. `install.sh` downloads a tagged release into `~/.push-bro`, builds the app there and runs `push-bro on`. The Homebrew formula lives in [ArturVah/homebrew-tap](https://github.com/ArturVah/homebrew-tap).
+`bin/gitceps on` points git's global `core.hooksPath` at `hooks/`. Every other hook name in that folder is a symlink to `hooks/forward`, which runs the repo's own hook of the same name. `install.sh` downloads a tagged release into `~/.gitceps`, builds the app there and runs `gitceps on`. The Homebrew formula lives in [ArturVah/homebrew-tap](https://github.com/ArturVah/homebrew-tap).
 
 `preview.html` plays the same `overlay/` files in a browser, next to a fake terminal. There are no dependencies and no build step for the animation. The scripts are plain scripts rather than ES modules, so the pages also work when opened straight from disk.
 
@@ -29,14 +29,14 @@ overlay/overlay.html?mode=huge&ins=3214&del=0&msg=fix:%20small%20typo
 2. Choose when it plays in `hooks/pre-push`, where `mode` is set.
 3. Add it to `PUSHES` in `preview.html` and as a case in `demo/try.sh`.
 
-A reaction to another git command gets its own hook: replace that hook's symlink in `hooks/` with a script that runs the repo's own hook first (as `pre-push` does), then checks its switch with `enabled <name>`. Add the switch name to `SWITCHES` in `bin/push-bro`.
+A reaction to another git command gets its own hook: replace that hook's symlink in `hooks/` with a script that runs the repo's own hook first (as `pre-push` does), then checks its switch with `enabled <name>`. Add the switch name to `SWITCHES` in `bin/gitceps`.
 
 ## Build and test
 
 ```sh
-demo/setup.sh                 # builds app/pushbro with Swift 6 and creates the sandbox repo
+demo/setup.sh                 # builds app/gitceps-app with Swift 6 and creates the sandbox repo
 demo/try.sh forklift          # pushes a commit of that kind from the sandbox
-PB_DRY=1 demo/try.sh liar     # prints the chosen reaction instead of showing it
+GITCEPS_DRY=1 demo/try.sh liar     # prints the chosen reaction instead of showing it
 ```
 
 The app must build with no warnings under `-swift-version 6`.
@@ -45,5 +45,5 @@ The app must build with no warnings under `-swift-version 6`.
 
 1. Bump `version` in `install.sh` and commit.
 2. Tag and push: `git tag v0.2.0 && git push origin v0.2.0`.
-3. In `homebrew-tap`, update `url` and `sha256` in `Formula/push-bro.rb`. The checksum comes from `curl -sL https://github.com/ArturVah/push-bro/archive/refs/tags/v0.2.0.tar.gz | shasum -a 256`.
+3. In `homebrew-tap`, update `url` and `sha256` in `Formula/gitceps.rb`. The checksum comes from `curl -sL https://github.com/ArturVah/gitceps/archive/refs/tags/v0.2.0.tar.gz | shasum -a 256`.
 4. Wait about five minutes before announcing: `raw.githubusercontent.com` keeps serving the old `install.sh` until its cache expires.

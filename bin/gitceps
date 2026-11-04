@@ -1,19 +1,19 @@
 #!/bin/bash
-# Turns Push Bro on or off, and switches single reactions on or off.
+# Turns Gitceps on or off, and switches single reactions on or off.
 # Usage:
-#   push-bro on | off | status                    for every git repo on this Mac
-#   push-bro list                                 each switch, and whether it's on where you are
-#   push-bro enable | disable <switch> [--here]   --here: only in the repo you're in
+#   gitceps on | off | status                    for every git repo on this Mac
+#   gitceps list                                 each switch, and whether it's on where you are
+#   gitceps enable | disable <switch> [--here]   --here: only in the repo you're in
 set -euo pipefail
-PB_HOME="${PB_HOME:-$(cd "$(dirname "$0")/.." && pwd)}"
-hooks="$PB_HOME/hooks"
+GITCEPS_HOME="${GITCEPS_HOME:-$(cd "$(dirname "$0")/.." && pwd)}"
+hooks="$GITCEPS_HOME/hooks"
 current=$(git config --global core.hooksPath || true)
 
 # push: the push animation. all: every animation. secrets: the secret check (independent of "all").
 SWITCHES="push all secrets"
 
 usage() {
-  echo "usage: push-bro on | off | status | list | enable <switch> [--here] | disable <switch> [--here]" >&2
+  echo "usage: gitceps on | off | status | list | enable <switch> [--here] | disable <switch> [--here]" >&2
   echo "switches: $SWITCHES" >&2
   exit 1
 }
@@ -21,23 +21,23 @@ usage() {
 case "${1:-}" in
   on)
     if [ -n "$current" ] && [ "$current" != "$hooks" ]; then
-      echo "Your global core.hooksPath is already $current, so Push Bro left it alone." >&2
+      echo "Your global core.hooksPath is already $current, so Gitceps left it alone." >&2
       echo "To use him in one repo only, run this inside it: git config core.hooksPath \"$hooks\"" >&2
       exit 1
     fi
     git config --global core.hooksPath "$hooks"
-    echo "Push Bro is on for every repo. Try a git push." ;;
+    echo "Gitceps is on for every repo. Try a git push." ;;
   off)
     if [ "$current" = "$hooks" ]; then git config --global --unset core.hooksPath; fi
-    echo "Push Bro is off." ;;
+    echo "Gitceps is off." ;;
   status)
     if [ "$current" = "$hooks" ]; then echo "on"; else echo "off"; fi ;;
   list)
     for name in $SWITCHES; do
       state=off
-      [ "$(git config --type=bool --default true --get "pushbro.$name")" = true ] && state=on
+      [ "$(git config --type=bool --default true --get "gitceps.$name")" = true ] && state=on
       note=""
-      git config --local --get "pushbro.$name" >/dev/null 2>&1 && note="  (set in this repo)"
+      git config --local --get "gitceps.$name" >/dev/null 2>&1 && note="  (set in this repo)"
       printf '%-8s %s%s\n' "$name" "$state" "$note"
     done ;;
   enable | disable)
@@ -46,10 +46,10 @@ case "${1:-}" in
     value=true; [ "$1" = disable ] && value=false
     if [ "${3:-}" = --here ]; then
       git rev-parse --git-dir >/dev/null 2>&1 || { echo "--here only works inside a git repo." >&2; exit 1; }
-      git config --local "pushbro.$name" "$value"
+      git config --local "gitceps.$name" "$value"
       where="in this repo"
     else
-      git config --global "pushbro.$name" "$value"
+      git config --global "gitceps.$name" "$value"
       where="everywhere"
     fi
     echo "$name: $([ "$value" = true ] && echo on || echo off) $where" ;;

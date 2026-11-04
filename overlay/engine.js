@@ -1,5 +1,5 @@
 "use strict";
-// Push Bro animation engine: holds every moving value, tweens them, and redraws the SVG each frame.
+// Gitceps animation engine: holds every moving value, tweens them, and redraws the SVG each frame.
 // scenes.js says what happens; this file knows how to draw it.
 // Plain scripts rather than ES modules, so overlay.html also works when opened straight from disk.
 

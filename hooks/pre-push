@@ -1,9 +1,9 @@
 #!/bin/bash
-# Push Bro's pre-push hook. Git runs it just before a push.
+# Gitceps' pre-push hook. Git runs it just before a push.
 # It measures what is being pushed, starts the animation in the background,
 # and blocks the push if it contains something that looks like a secret.
-PB_HOME="$(cd "$(dirname "$0")/.." && pwd)"
-LOG="$HOME/Library/Logs/push-bro.log"
+GITCEPS_HOME="$(cd "$(dirname "$0")/.." && pwd)"
+LOG="$HOME/Library/Logs/gitceps.log"
 ZERO=0000000000000000000000000000000000000000
 
 # Key formats are case-sensitive. "sk-" covers OpenAI and Anthropic keys.
@@ -13,8 +13,8 @@ ASSIGN_RE="(password|passwd|secret|api_?key|token)[\"']?[[:space:]]*[:=][[:space
 FILE_RE='(^|/)(\.env(\.[^/]*)?|id_rsa|id_ed25519|credentials\.json)$|\.pem$'
 TEMPLATE_RE='\.env\.(example|sample|template|dist)$'
 
-# Switches live in git config, e.g. `git config pushbro.push false` (see `push-bro list`). On by default.
-enabled() { [ "$(git config --type=bool --default true --get "pushbro.$1")" = true ]; }
+# Switches live in git config, e.g. `git config gitceps.push false` (see `gitceps list`). On by default.
+enabled() { [ "$(git config --type=bool --default true --get "gitceps.$1")" = true ]; }
 
 # Git calls the hook with the remote's name and URL. The cloud shows the repo's name:
 # git@github.com:you/app.git -> app
@@ -71,17 +71,17 @@ else                                       mode=normal
 fi
 
 if enabled all && enabled push; then
-  # PB_DRY=1 only prints the chosen reaction (for testing without the overlay).
-  if [ -n "$PB_DRY" ]; then
-    echo "push-bro would play: $mode (+$ins -$del, to: $repo, msg: $msg${secret:+, secret: $secret})" >&2
+  # GITCEPS_DRY=1 only prints the chosen reaction (for testing without the overlay).
+  if [ -n "$GITCEPS_DRY" ]; then
+    echo "gitceps would play: $mode (+$ins -$del, to: $repo, msg: $msg${secret:+, secret: $secret})" >&2
   # Launch in the background so the push never waits for the animation.
-  else ( "$PB_HOME/app/pushbro" --mode "$mode" --ins "$ins" --del "$del" --msg "$msg" --secret "$secret" --remote "$repo" \
+  else ( "$GITCEPS_HOME/app/gitceps-app" --mode "$mode" --ins "$ins" --del "$del" --msg "$msg" --secret "$secret" --remote "$repo" \
       >>"$LOG" 2>&1 & )
   fi
 fi
 
 if [ "$mode" = secret ]; then
-  echo "push-bro: NOPE. That looks like a secret ($secret). Push blocked." >&2
+  echo "gitceps: NOPE. That looks like a secret ($secret). Push blocked." >&2
   echo "    If it's a fake test value: git push --no-verify" >&2
   exit 1
 fi

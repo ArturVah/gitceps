@@ -1,5 +1,5 @@
 #!/bin/bash
-# Push Bro turns itself on through git's global core.hooksPath, and while that is set git stops
+# Gitceps turns itself on through git's global core.hooksPath, and while that is set git stops
 # looking in each repo's own hooks folder. This script stands in for the other hook names (they
 # are symlinks to it) and runs the repo's own hook of the same name, so those keep working.
 #
