@@ -18,7 +18,7 @@ main() {
   fi
 
   echo "Downloading Push Bro $version..."
-  local tmp; tmp=$(mktemp -d)
+  tmp=$(mktemp -d)   # not local: the EXIT trap runs after main() has returned
   trap 'rm -rf "$tmp"' EXIT
   curl -fsSL "https://github.com/ArturVah/push-bro/archive/refs/tags/v$version.tar.gz" | tar -xz -C "$tmp" --strip-components 1
 
