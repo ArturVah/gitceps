@@ -29,6 +29,8 @@ overlay/overlay.html?mode=huge&ins=3214&del=0&msg=fix:%20small%20typo
 2. Choose when it plays in `hooks/pre-push`, where `mode` is set.
 3. Add it to `PUSHES` in `preview.html` and as a case in `demo/try.sh`.
 
+A reaction to another git command gets its own hook: replace that hook's symlink in `hooks/` with a script that runs the repo's own hook first (as `pre-push` does), then checks its switch with `enabled <name>`. Add the switch name to `SWITCHES` in `bin/push-bro`.
+
 ## Build and test
 
 ```sh

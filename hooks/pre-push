@@ -13,6 +13,9 @@ ASSIGN_RE="(password|passwd|secret|api_?key|token)[\"']?[[:space:]]*[:=][[:space
 FILE_RE='(^|/)(\.env(\.[^/]*)?|id_rsa|id_ed25519|credentials\.json)$|\.pem$'
 TEMPLATE_RE='\.env\.(example|sample|template|dist)$'
 
+# Switches live in git config, e.g. `git config pushbro.push false` (see `push-bro list`). On by default.
+enabled() { [ "$(git config --type=bool --default true --get "pushbro.$1")" = true ]; }
+
 # Git calls the hook with the remote's name and URL. The cloud shows the repo's name:
 # git@github.com:you/app.git -> app
 repo=$(basename "${2%/}" .git)
@@ -43,11 +46,14 @@ new_commits() { git log --format= "$@" "${tips[@]}" --not --remotes; }
 
 read -r ins del < <(new_commits --numstat | awk '$1 ~ /^[0-9]+$/ { i += $1; d += $2 } END { print i + 0, d + 0 }')
 msg=$(git log -1 --format=%s "${tips[0]}")
-secret=$(new_commits --name-only --diff-filter=AM | grep -E "$FILE_RE" | grep -vE "$TEMPLATE_RE" | head -1)
-if [ -z "$secret" ]; then
-  added=$(new_commits -p -U0 | grep '^+' | grep -v '^+++ ')
-  if grep -Eq "$KEY_RE" <<<"$added" || grep -Eiq "$ASSIGN_RE" <<<"$added"; then
-    secret="key in code"
+secret=""
+if enabled secrets; then
+  secret=$(new_commits --name-only --diff-filter=AM | grep -E "$FILE_RE" | grep -vE "$TEMPLATE_RE" | head -1)
+  if [ -z "$secret" ]; then
+    added=$(new_commits -p -U0 | grep '^+' | grep -v '^+++ ')
+    if grep -Eq "$KEY_RE" <<<"$added" || grep -Eiq "$ASSIGN_RE" <<<"$added"; then
+      secret="key in code"
+    fi
   fi
 fi
 
@@ -64,12 +70,14 @@ elif [ "$total" -ge 400 ];            then mode=huge
 else                                       mode=normal
 fi
 
-# PB_DRY=1 only prints the chosen reaction (for testing without the overlay).
-if [ -n "$PB_DRY" ]; then
-  echo "push-bro would play: $mode (+$ins -$del, to: $repo, msg: $msg${secret:+, secret: $secret})" >&2
-# Launch in the background so the push never waits for the animation.
-else ( "$PB_HOME/app/pushbro" --mode "$mode" --ins "$ins" --del "$del" --msg "$msg" --secret "$secret" --remote "$repo" \
-    >>"$LOG" 2>&1 & )
+if enabled all && enabled push; then
+  # PB_DRY=1 only prints the chosen reaction (for testing without the overlay).
+  if [ -n "$PB_DRY" ]; then
+    echo "push-bro would play: $mode (+$ins -$del, to: $repo, msg: $msg${secret:+, secret: $secret})" >&2
+  # Launch in the background so the push never waits for the animation.
+  else ( "$PB_HOME/app/pushbro" --mode "$mode" --ins "$ins" --del "$del" --msg "$msg" --secret "$secret" --remote "$repo" \
+      >>"$LOG" 2>&1 & )
+  fi
 fi
 
 if [ "$mode" = secret ]; then

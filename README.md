@@ -49,14 +49,19 @@ He appears in the bottom-right corner of the screen your mouse is on, for a few 
 | A push git refuses because someone pushed first | The bar bounces off the cloud and lands on his foot. |
 | A password or API key | Says "NOPE", throws your code away and stops the push. |
 
-## Turn him off
+## Settings
 
 ```sh
-~/.push-bro/bin/push-bro off   # installed with curl
-push-bro off                   # installed with Homebrew
+push-bro list                   # each switch and whether it's on
+push-bro disable push           # no animation when you push, in every repo
+push-bro disable all --here     # no animation in the repo you're in
+push-bro disable secrets        # skip the secret check
+push-bro off                    # turn Push Bro off completely
 ```
 
-`on` brings him back. To uninstall, turn him off first, then run `rm -rf ~/.push-bro` or `brew uninstall push-bro`. Skipping `off` leaves git looking for hooks in a folder that no longer exists, and your repos' own hooks stop running.
+`enable` turns a switch back on, and `on` brings him back. `all` mutes the animation but keeps the secret check. Settings are stored in git config under `[pushbro]`, and `--here` writes to the current repo's `.git/config`. With the curl install, the command is `~/.push-bro/bin/push-bro`.
+
+To uninstall, run `push-bro off` first, then `rm -rf ~/.push-bro` or `brew uninstall push-bro`. Skipping `off` leaves git looking for hooks in a folder that no longer exists, and your repos' own hooks stop running.
 
 ## Secret check
 

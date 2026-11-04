@@ -5,7 +5,7 @@
 set -euo pipefail
 
 main() {
-  local version="0.1.0" dest="$HOME/.push-bro"
+  local version="0.2.0" dest="$HOME/.push-bro"
 
   if [ "$(uname)" != Darwin ]; then
     echo "Push Bro only runs on macOS." >&2; exit 1
