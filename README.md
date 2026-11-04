@@ -15,21 +15,26 @@ A small macOS app and git hook. He pops up in the corner of your screen, reacts 
 macOS only. Requires Apple's Command Line Tools (`xcode-select --install`).
 
 ```sh
-git clone https://github.com/ArturVah/push-bro.git ~/push-bro
-~/push-bro/demo/setup.sh
+curl -fsSL https://raw.githubusercontent.com/ArturVah/push-bro/main/install.sh | bash
 ```
 
-`setup.sh` builds the app and creates a sandbox repo with the hook turned on. It leaves your own repos alone.
+Or with Homebrew:
+
+```sh
+brew install ArturVah/tap/push-bro && push-bro on
+```
+
+Both build the app on your Mac and turn Push Bro on for every repo. Each repo's own hooks keep running. Repos that set their own hooks folder, such as those using Husky, skip him.
 
 ## Quickstart
 
-Make a 3,000-line commit in the sandbox and push it:
+Push from any repo, in the terminal or your editor:
 
 ```sh
-~/push-bro/demo/try.sh huge
+git push
 ```
 
-He appears in the bottom-right corner of the screen your mouse is on. The sandbox pushes to a folder on your disk, so nothing leaves your machine. Swap `huge` for `tiny`, `normal`, `forklift`, `liar`, `force`, `rejected` or `secret`.
+He appears in the bottom-right corner of the screen your mouse is on, for a few seconds. The push never waits for him.
 
 ## Reactions
 
@@ -44,15 +49,14 @@ He appears in the bottom-right corner of the screen your mouse is on. The sandbo
 | A push git refuses because someone pushed first | The bar bounces off the cloud and lands on his foot. |
 | A password or API key | Says "NOPE", throws your code away and stops the push. |
 
-## Use it in a real repo
-
-Run this inside the repo:
+## Turn him off
 
 ```sh
-git config core.hooksPath ~/push-bro/hooks
+~/.push-bro/bin/push-bro off   # installed with curl
+push-bro off                   # installed with Homebrew
 ```
 
-To turn him off again: `git config --unset core.hooksPath`. While it's set, git runs Push Bro's hook instead of that repo's own hooks, so skip repos that rely on hooks of their own (for example, Husky).
+`on` brings him back. To uninstall, turn him off first, then run `rm -rf ~/.push-bro` or `brew uninstall push-bro`. Skipping `off` leaves git looking for hooks in a folder that no longer exists, and your repos' own hooks stop running.
 
 ## Secret check
 
@@ -63,7 +67,7 @@ If the match is a fake test value, push anyway with `git push --no-verify`. The 
 ## Notes
 
 - **No sound yet:** he grunts in text only.
-- **Browser preview:** open `preview.html` to watch every reaction without installing anything.
+- **Browser preview:** clone the repo and open `preview.html` to watch every reaction without installing anything.
 - **Logs:** the app writes to `~/Library/Logs/push-bro.log`.
 
 ## License

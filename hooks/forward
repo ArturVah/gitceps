@@ -1,0 +1,12 @@
+#!/bin/bash
+# Push Bro turns itself on through git's global core.hooksPath, and while that is set git stops
+# looking in each repo's own hooks folder. This script stands in for the other hook names (they
+# are symlinks to it) and runs the repo's own hook of the same name, so those keep working.
+#
+# Not forwarded: fsmonitor-watchman, which git finds through core.fsmonitor rather than by name,
+# and post-index-change and reference-transaction, which git runs so often that a stand-in
+# would slow down everyday commands.
+own="$(git rev-parse --git-common-dir)/hooks/$(basename "$0")"
+if [ -x "$own" ] && ! [ "$own" -ef "$0" ]; then
+  exec "$own" "$@"
+fi

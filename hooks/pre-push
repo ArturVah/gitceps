@@ -18,16 +18,24 @@ TEMPLATE_RE='\.env\.(example|sample|template|dist)$'
 repo=$(basename "${2%/}" .git)
 repo=${repo:-$1}
 
-# Git passes one line per ref: <local ref> <local sha> <remote ref> <remote sha>.
+# Git sends one line per ref on stdin: <local ref> <local sha> <remote ref> <remote sha>.
+refs=$(cat)
+
+# The repo's own pre-push hook goes first (see hooks/forward). If it refuses, so do we.
+own="$(git rev-parse --git-common-dir)/hooks/pre-push"
+if [ -x "$own" ] && ! [ "$own" -ef "$0" ]; then
+  "$own" "$@" <<<"$refs" || exit
+fi
+
 tips=(); rewritten=0
 while read -r lref lsha rref rsha; do
-  [ "$lsha" = "$ZERO" ] && continue   # deleting a remote branch
+  [ -z "$lsha" ] || [ "$lsha" = "$ZERO" ] && continue   # no refs, or deleting a remote branch
   tips+=("$lsha")
   # The remote has commits this push would drop: someone pushed first, or history was rewritten.
   if [ "$rsha" != "$ZERO" ] && ! git merge-base --is-ancestor "$rsha" "$lsha" 2>/dev/null; then
     rewritten=1
   fi
-done
+done <<<"$refs"
 [ ${#tips[@]} = 0 ] && exit 0
 
 # Commits the remote doesn't have yet, each counted once even when several refs share them.

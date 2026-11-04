@@ -1,0 +1,26 @@
+#!/bin/bash
+# Turns Push Bro on or off for every git repo on this Mac.
+# Usage: push-bro on | off | status
+set -euo pipefail
+PB_HOME="${PB_HOME:-$(cd "$(dirname "$0")/.." && pwd)}"
+hooks="$PB_HOME/hooks"
+current=$(git config --global core.hooksPath || true)
+
+case "${1:-}" in
+  on)
+    if [ -n "$current" ] && [ "$current" != "$hooks" ]; then
+      echo "Your global core.hooksPath is already $current, so Push Bro left it alone." >&2
+      echo "To use him in one repo only, run this inside it: git config core.hooksPath \"$hooks\"" >&2
+      exit 1
+    fi
+    git config --global core.hooksPath "$hooks"
+    echo "Push Bro is on for every repo. Try a git push." ;;
+  off)
+    if [ "$current" = "$hooks" ]; then git config --global --unset core.hooksPath; fi
+    echo "Push Bro is off." ;;
+  status)
+    if [ "$current" = "$hooks" ]; then echo "on"; else echo "off"; fi ;;
+  *)
+    echo "usage: push-bro on | off | status" >&2
+    exit 1 ;;
+esac
