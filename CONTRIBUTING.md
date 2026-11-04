@@ -3,15 +3,21 @@
 ## How it fits together
 
 ```
-git push
-└── hooks/pre-push               runs the repo's own pre-push, measures the push, picks a reaction, blocks secrets
-    └── app/gitceps-app          Mac app (app/main.swift): a see-through, click-through window
-        └── overlay/overlay.html the drawing (SVG)
-            ├── engine.js        moves and draws it, one clock for everything
-            └── scenes.js        what he does for each kind of push
+git push / pull / commit --amend / rebase / clone
+└── hooks/                       one script per git event; each runs the repo's own hook first
+    ├── pre-push                 measures the push, picks a reaction, blocks secrets
+    ├── post-merge               pull (merge)
+    ├── post-rewrite             amend, rebase, pull --rebase
+    ├── post-checkout            clone
+    ├── forward                  stands in for every other hook name, so the repo's own hooks still run
+    └── lib.sh                   shared: switches, running the repo's own hook, pull detection, starting the app
+        └── app/gitceps-app      Mac app (app/main.swift): a see-through, click-through window
+            └── overlay/overlay.html the drawing (SVG)
+                ├── engine.js    moves and draws it, one clock for everything
+                └── scenes.js    what he does for each reaction
 ```
 
-`bin/gitceps on` points git's global `core.hooksPath` at `hooks/`. Every other hook name in that folder is a symlink to `hooks/forward`, which runs the repo's own hook of the same name. `install.sh` downloads a tagged release into `~/.gitceps`, builds the app there and runs `gitceps on`. The Homebrew formula lives in [ArturVah/homebrew-tap](https://github.com/ArturVah/homebrew-tap).
+`bin/gitceps on` points git's global `core.hooksPath` at `hooks/`. The other hook names in that folder are symlinks to `hooks/forward`. A pull is whatever git itself labels a pull (`git pull`, merge or rebase), or a merge of the branch's upstream, as an IDE's fetch-then-merge does. `install.sh` downloads a tagged release into `~/.gitceps`, builds the app there and runs `gitceps on`. The Homebrew formula lives in [ArturVah/homebrew-tap](https://github.com/ArturVah/homebrew-tap).
 
 `preview.html` plays the same `overlay/` files in a browser, next to a fake terminal. There are no dependencies and no build step for the animation. The scripts are plain scripts rather than ES modules, so the pages also work when opened straight from disk.
 
