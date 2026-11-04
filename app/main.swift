@@ -1,6 +1,6 @@
 // Gitceps' Mac app. Shows overlay/overlay.html in a see-through, click-through window in the
 // bottom-right corner of the screen under the mouse, plays one push, then quits.
-// Usage: gitceps-app --mode tiny|normal|huge|forklift|force|rejected|secret --ins N --del N --msg TEXT
+// Usage: gitceps-app --mode tiny|normal|huge|forklift|force|rejected|secret|pull|amend|rebase|clone --ins N --del N --msg TEXT
 //                [--secret FILE] [--remote REPO]
 import AppKit
 import WebKit

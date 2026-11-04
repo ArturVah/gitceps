@@ -49,12 +49,15 @@ He appears in the bottom-right corner of the screen your mouse is on, for a few 
 | A push git refuses because someone pushed first | The bar bounces off the cloud and lands on his foot. |
 | A password or API key | Says "NOPE", throws your code away and stops the push. |
 | `git pull` of 50+ lines | Tug of war with the cloud over your teammates' commits. Past 400 lines, the cloud wins and he gets yanked off his feet. |
+| `git commit --amend` on a commit you already pushed | Tiptoes in, swaps a plate, whistles. "nobody saw that." |
+| `git rebase` of 3+ commits | Juggles the plates and racks them in a new order. "history is whatever I say it is." |
+| `git clone` | Walks into an empty gym. "new gym. who dis?" |
 
 ## Settings
 
 ```sh
 gitceps list                   # each switch and whether it's on
-gitceps disable pull           # no animation when you pull, in every repo
+gitceps disable rebase         # no animation on rebase, in every repo
 gitceps disable all --here     # no animation in the repo you're in
 gitceps disable secrets        # skip the secret check
 gitceps off                    # turn Gitceps off completely
@@ -75,6 +78,7 @@ If the match is a fake test value, push anyway with `git push --no-verify`. The 
 - **No sound yet:** he grunts in text only.
 - **Homebrew and Xcode:** Homebrew won't build from source while an installed Xcode is older than your macOS. Update Xcode, or use the curl installer.
 - **Browser preview:** clone the repo and open `preview.html` to watch every reaction without installing anything.
+- **Speed:** the hooks add about 10 ms to a commit or branch switch and about 90 ms to a push (the secret scan). The app uses about 60 MB while he's on screen and quits when he leaves; nothing runs in between.
 - **Logs:** the app writes to `~/Library/Logs/gitceps.log`.
 
 ## License

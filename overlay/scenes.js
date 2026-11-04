@@ -10,6 +10,8 @@
 //   puff      true: dust where the bar meets the floor
 //   forklift  true: the forklift appears, and its driver does the talking from then on
 //   rope      [commit messages]: a rope drops from the cloud with those tied along it
+//
+// Scenes receive the push: { mode, ins, del, msg, msgs, commits, from, secret, remote }.
 //   to, ms    animate values from `anim` (engine.js) over ms milliseconds;
 //             optional ease: "inOut" (default), "in", "out", "back"
 //   ms        on its own: wait
@@ -205,6 +207,50 @@ const SCENES = {
           ]),
     ];
   },
+
+  // commit --amend on a commit that was already pushed: he sneaks in and swaps a plate.
+  amend: () => [
+    { to: { barHeight: bar.radius, barOpacity: 1 }, ms: 1 },
+    { face: "sus", to: { broX: -8, tiptoe: 1, tilt: -4 }, ms: 1500, ease: "out" },   // tiptoes in from the right
+    { say: "shh.", to: { tiptoe: 0, tilt: 0 }, ms: 500 },
+    { say: "", to: { squat: 26, hands: bar.radius }, ms: 350 },
+    { hold: true, to: { barSpin: -6, barX: -8 }, ms: 180 }, { to: { barSpin: 5, barX: 6 }, ms: 180 },   // fiddling with the plate
+    { to: { barSpin: -3, barX: -3 }, ms: 150 }, { to: { barSpin: 0, barX: 0 }, ms: 150 },
+    { hold: false, cloud: ["✓ pushed*", AMBER], face: "proud", to: { squat: 0, hands: 58 }, ms: 300 },
+    { say: "nobody saw that.", to: { tilt: 3 }, ms: 1400 },
+    { face: "cool", say: "", to: { tiptoe: 1, tilt: -4 }, ms: 200 },
+    { to: { broX: OFFSCREEN + 60 }, ms: 1500, ease: "in" },   // tiptoes back out
+  ],
+
+  // A rebase of several commits: the plates fly off and he juggles them into a new order.
+  rebase: push => [
+    ...dropBar(.3), ...runIn(),
+    { face: "sus", say: `${push.commits} commits?`, ms: 900 },
+    { say: "let's tidy up.", face: "proud", to: { hands: 150 }, ms: 700 },
+    { say: "", to: { juggle: 1, squat: 4 }, ms: 500, ease: "out" },
+    { to: { hop: 6 }, ms: 250 }, { to: { hop: 0 }, ms: 250 },
+    { face: "cool", say: "history is whatever I say it is.", ms: 1800 },
+    { to: { hop: 6 }, ms: 250 }, { to: { hop: 0 }, ms: 250 },
+    { say: "", to: { juggle: 0, squat: 0, hands: 58 }, ms: 400, ease: "in" },
+    { puff: true, to: { quake: 3, bend: 6 }, ms: 80 },
+    { to: { quake: 0, bend: 0 }, ms: 250, ease: "out" },
+    { cloud: ["✓ rebased", GREEN], face: "proud", say: "clean.", ms: 1300 },
+    ...runOff(),
+  ],
+
+  // git clone: a new, empty gym. No bar yet.
+  clone: push => [
+    { to: { opacity: 1 }, ms: 1 },
+    { face: "calm", to: { broX: 40, running: .5, tilt: 2 }, ms: 1400, ease: "out" },   // strolls in
+    { to: { running: 0, tilt: 0 }, ms: 200 },
+    { face: "sus", to: { tilt: -8 }, ms: 500 },   // looks around
+    { to: { tilt: 8 }, ms: 600 },
+    { to: { tilt: 0 }, ms: 300 },
+    { say: "new gym. who dis?", ms: 1500 },
+    { say: "", face: "proud", to: { hands: 160, squat: 4, squash: .05 }, ms: 300 },   // flexes at the cloud
+    { cloud: [`${(push.ins || 0).toLocaleString("en-US")} files`, GREEN], say: "I'll allow it.", to: { squash: 0 }, ms: 1600 },
+    ...runOff(),
+  ],
 
   secret: () => [
     ...dropBar(.2), ...runIn(),

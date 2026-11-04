@@ -56,6 +56,12 @@ const PUSHES = {
   bigpull:  { label: "pull, 2,400 lines", cmd: "git pull", push: { mode: "pull", ins: 2400, del: 300, msg: "refactor: the big one", commits: 14, from: "Sam",
               msgs: "refactor: the big one\nfeat: new dashboard\nfix: everything\nchore: cleanup" },
               out: () => [["Updating " + sha() + ".." + sha(), "dim"], ["Fast-forward", "dim"], [" 41 files changed, 2400 insertions(+), 300 deletions(-)"]] },
+  amend:    { label: "amend after push", cmd: "git commit --amend", push: { ins: 12, del: 3, msg: "fix: the thing (for real this time)", commits: 1 },
+              out: () => [["[main " + sha() + "] fix: the thing (for real this time)", "dim"], [" Date: just now", "dim"]] },
+  rebase:   { label: "rebase, 5 commits", cmd: "git rebase main", push: { ins: 240, del: 80, msg: "feat: finished", commits: 5 },
+              out: () => [["Successfully rebased and updated refs/heads/feature.", "ok"]] },
+  clone:    { label: "clone", cmd: "git clone git@github.com:you/app.git", push: { ins: 412, del: 0, msg: "", commits: 0 },
+              out: () => [["Cloning into 'app'...", "dim"], ["Receiving objects: 100% (1204/1204), done.", "dim"]] },
   secret:   { label: ".env file",    push: { ins: 1, del: 0, msg: "chore: add config", secret: ".env" },
               out: () => [["gitceps: NOPE. That looks like a secret (.env). Push blocked.", "warn"],
                           ["    If it's a fake test value: git push --no-verify", "dim"], failed] },
@@ -77,7 +83,7 @@ async function run(name) {
   bro.src = "overlay/overlay.html?" + new URLSearchParams({ mode: name, remote: "app", ...push });
   const id = ++current;
   out.textContent = "";
-  if (cmd !== "git pull") print(`$ git commit -m "${push.msg}"`, "dim");
+  if (cmd === "git push" || cmd === "git push --force") print(`$ git commit -m "${push.msg}"`, "dim");
   const typed = document.createElement("span");
   out.appendChild(typed);
   for (const ch of "$ " + cmd) {

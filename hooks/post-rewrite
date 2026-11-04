@@ -1,1 +1,35 @@
-forward
+#!/bin/bash
+# Gitceps' post-rewrite hook. Git runs it after `commit --amend` and after a rebase.
+# amend: only when the commit was already pushed (he sneaks in to swap a plate).
+# rebase: only when 3+ commits were rewritten (he juggles them).
+GITCEPS_HOME="$(cd "$(dirname "$0")/.." && pwd)"
+LOG="$HOME/Library/Logs/gitceps.log"
+rewrites=$(cat)   # one "<old sha> <new sha>" line per rewritten commit
+
+own="$(git rev-parse --git-common-dir)/hooks/post-rewrite"
+if [ -x "$own" ] && ! [ "$own" -ef "$0" ]; then "$own" "$@" <<<"$rewrites"; fi
+
+enabled() { [ "$(git config --type=bool --default true --get "gitceps.$1")" = true ]; }
+enabled all || exit 0
+
+case "$1" in
+  amend)
+    enabled amend || exit 0
+    read -r old new _ <<<"$rewrites"
+    [ -n "$old" ] && [ "$old" != "$new" ] || exit 0            # nothing changed
+    git branch -r --contains "$old" 2>/dev/null | grep -q . || exit 0   # not pushed yet: nobody will notice
+    mode=amend; count=1; msg=$(git log -1 --format=%s "$new") ;;
+  rebase)
+    enabled rebase || exit 0
+    count=$(grep -c . <<<"$rewrites")
+    [ "$count" -ge 3 ] || exit 0
+    mode=rebase; msg=$(git log -1 --format=%s HEAD) ;;
+  *) exit 0 ;;
+esac
+repo=$(basename "$(git remote get-url origin 2>/dev/null | sed 's#/*$##')" .git)
+
+if [ -n "$GITCEPS_DRY" ]; then
+  echo "gitceps would play: $mode ($count commits, to: ${repo:-origin}, msg: $msg)" >&2
+else ( "$GITCEPS_HOME/app/gitceps-app" --mode "$mode" --commits "$count" --msg "$msg" --remote "${repo:-origin}" >>"$LOG" 2>&1 & )
+fi
+exit 0

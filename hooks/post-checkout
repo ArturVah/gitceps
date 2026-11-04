@@ -1,1 +1,23 @@
-forward
+#!/bin/bash
+# Gitceps' post-checkout hook. Git runs it after checkout, switch, and at the end of a clone.
+# Only a fresh clone gets a reaction (he walks into an empty gym). Branch switches stay quiet.
+GITCEPS_HOME="$(cd "$(dirname "$0")/.." && pwd)"
+LOG="$HOME/Library/Logs/gitceps.log"
+
+own="$(git rev-parse --git-common-dir)/hooks/post-checkout"
+if [ -x "$own" ] && ! [ "$own" -ef "$0" ]; then "$own" "$@"; fi
+
+# A clone is the one checkout whose "previous" commit is all zeros.
+[ "$1" = 0000000000000000000000000000000000000000 ] || exit 0
+enabled() { [ "$(git config --type=bool --default true --get "gitceps.$1")" = true ]; }
+enabled all && enabled clone || exit 0
+
+repo=$(basename "$(git remote get-url origin 2>/dev/null | sed 's#/*$##')" .git)
+files=$(git ls-files | wc -l | tr -d ' ')
+msg=$(git log -1 --format=%s 2>/dev/null)
+
+if [ -n "$GITCEPS_DRY" ]; then
+  echo "gitceps would play: clone ($files files, to: ${repo:-origin}, msg: $msg)" >&2
+else ( "$GITCEPS_HOME/app/gitceps-app" --mode clone --ins "$files" --msg "$msg" --remote "${repo:-origin}" >>"$LOG" 2>&1 & )
+fi
+exit 0

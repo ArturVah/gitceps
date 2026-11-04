@@ -1,6 +1,6 @@
 #!/bin/bash
 # Makes a commit of the chosen kind in the sandbox repo (see setup.sh) and pushes it.
-# Usage: demo/try.sh tiny | normal | huge | forklift | liar | force | rejected | secret | pull | bigpull
+# Usage: demo/try.sh tiny | normal | huge | forklift | liar | force | rejected | secret | pull | bigpull | amend | rebase | clone
 cd "$(dirname "$0")/repo" || { echo "Run demo/setup.sh first."; exit 1; }
 
 # Writes N lines of fake code to a file (different every run, so the diff is always N+ lines).
@@ -55,6 +55,29 @@ case "$1" in
     rm -rf "$teammate"
     git pull -q --no-rebase
     exit ;;
+  amend)
+    echo "amended $RANDOM" >> README.md
+    git commit -q --amend -am "fix: the thing (for real this time)"   # HEAD was already pushed
+    git push -q --no-verify --force   # keep the sandbox in sync, quietly
+    exit ;;
+  rebase)
+    branch="feature-$RANDOM"
+    git checkout -q -b "$branch"
+    for n in 1 2 3; do fake_code 20 "part$n.js"; git add "part$n.js"; git commit -qm "feat: part $n"; done
+    git checkout -q main
+    echo "main moved $RANDOM" >> README.md && git commit -qam "chore: main moved on"
+    git checkout -q "$branch"
+    git rebase -q main
+    # Fold it into main quietly (no merge, so no pull scene) and push, so the next demo starts clean.
+    git checkout -q main && git reset -q --hard "$branch" && git branch -q -D "$branch"
+    git push -q --no-verify
+    exit ;;
+  clone)
+    # The sandbox turns the hook on per repo, so the fresh clone needs the same setting.
+    fresh=$(mktemp -d)
+    git -c core.hooksPath="$(git config core.hooksPath)" clone -q ../demo-app.git "$fresh/app"
+    rm -rf "$fresh"
+    exit ;;
   secret)
     # Fake key, assembled at runtime so no key-shaped string lives in this repo.
     printf 'STRIPE_KEY=%s_%s_%s\n' sk live 51FAKEfakeFAKE0000demo > .env
@@ -63,6 +86,6 @@ case "$1" in
     git reset -q --hard HEAD~1   # drop the fake-secret commit so the demo keeps working
     exit ;;
   *)
-    echo "usage: demo/try.sh tiny|normal|huge|forklift|liar|force|rejected|secret|pull|bigpull"; exit 1 ;;
+    echo "usage: demo/try.sh tiny|normal|huge|forklift|liar|force|rejected|secret|pull|bigpull|amend|rebase|clone"; exit 1 ;;
 esac
 git push

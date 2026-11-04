@@ -40,6 +40,9 @@ const anim = {
   cloudSquash: 0,   // the cloud flattens when code lands in it
   forkliftX: 520,   // forklift x offset from SPOT
   forkHeight: 0,
+  juggle: 0,        // 0..1, lifts the plates off the bar into an arc over his head
+  spin: 0,          // juggling phase, keeps increasing while he juggles
+  tiptoe: 0,        // 0..1, up on his toes with tiny steps
   rope: 0,          // 0..1, how much of the rope hangs down from the cloud
   cloudLean: 0,     // cloud tilt in degrees, positive leans it toward him (right)
   ropeSlack: 0,     // how much the rope bows sideways, for the tug
@@ -176,6 +179,7 @@ function buildBar(push) {
 
   els.barbell.textContent = "";
   bar = { radius, plates: [], shaft: svg("path", { fill: "#8a8f98" }, els.barbell) };
+  if (push.mode === "clone") { anim.barOpacity = 0; els.barTag.textContent = ""; return; }
   for (const side of [-1, 1]) {
     for (let i = 0; i < count; i++) {
       const r = radius * (1 - i * .12), g = svg("g", {}, els.barbell);
@@ -184,13 +188,15 @@ function buildBar(push) {
     }
     const collar = svg("g", {}, els.barbell);
     svg("rect", { x: -2.5, y: -8, width: 5, height: 16, rx: 1, fill: "#5d626b" }, collar);
-    bar.plates.push({ g: collar, x: (PLATE_EDGE - count * width - (count - 1) * gap - 2.5) * side });
+    bar.plates.push({ g: collar, collar: true, x: (PLATE_EDGE - count * width - (count - 1) * gap - 2.5) * side });
   }
 
   // A name tag tied to the bar: commit message, then size. It hangs right of his head so it never hides his face.
   const n = v => v.toLocaleString("en-US");
   const detail = push.mode === "secret" ? shorten(push.secret || "secret")
     : push.mode === "pull" ? `${n(push.commits || 1)} commit${push.commits == 1 ? "" : "s"} from ${shorten(push.from || "a teammate", 16)}`
+    : push.mode === "rebase" ? `${n(push.commits || 1)} commits, reordered`
+    : push.mode === "amend" ? "amended (after push)"
     : `+${n(push.ins)} −${n(push.del)}`;
   els.barTag.textContent = "";
   svg("path", { d: `M60 -3 V${-radius - 12}`, stroke: "#d8c98d", "stroke-width": 1.5 }, els.barTag);
@@ -267,7 +273,7 @@ function drawArm(side, hx, hy, arm, bicep, hand) {
 }
 
 function drawLegs(now) {
-  const s = anim.squat, run = anim.running;
+  const s = anim.squat - anim.tiptoe * 6, run = anim.running + anim.tiptoe * .35;
   for (const [side, leg, shoe] of [[-1, els.legL, els.shoeL], [1, els.legR, els.shoeR]]) {
     const stride = now * .025 + (side < 0 ? Math.PI : 0);
     const fx = 18 * side - Math.sin(stride) * 16 * run, fy = -4 - Math.max(0, Math.cos(stride)) * 12 * run;
@@ -288,10 +294,20 @@ function drawBar(now) {
     g.setAttribute("opacity", anim.barOpacity);
   }
   bar.shaft.setAttribute("d", `M${-BAR_HALF} ${end - 3} Q0 ${-end - 3} ${BAR_HALF} ${end - 3} V${end + 3} Q0 ${-end + 3} ${-BAR_HALF} ${end + 3} Z`);
-  for (const p of bar.plates) {
+  const plates = bar.plates.filter(p => !p.collar), n = plates.length;
+  bar.plates.forEach((p, i) => {
     const slope = Math.atan(2 * end * p.x / BAR_HALF ** 2) * 180 / Math.PI;
-    p.g.setAttribute("transform", `translate(${p.x},${sagAt(now, p.x)}) rotate(${slope})`);
-  }
+    let px = p.x, py = sagAt(now, p.x), rot = slope;
+    if (anim.juggle > 0 && !p.collar) {
+      // Each plate circles over his head, spaced evenly around the loop.
+      const k = plates.indexOf(p), a = anim.spin + k * 2 * Math.PI / n;
+      // Orbit centre is over his head; the bar's own y is subtracted because plates are drawn inside the bar group.
+      const jx = Math.cos(a) * 80, jy = -175 - Math.sin(a) * 60 + anim.barHeight;
+      px = lerp(p.x, jx, anim.juggle); py = lerp(py, jy, anim.juggle);
+      rot = lerp(slope, a * 180 / Math.PI, anim.juggle);
+    }
+    p.g.setAttribute("transform", `translate(${px},${py}) rotate(${rot})`);
+  });
   return [x, y];
 }
 
@@ -378,6 +394,7 @@ function render(now) {
   els.vein.setAttribute("opacity", clamp(red * 2.5 - 1.25, 0, 1));
   els.vein.setAttribute("transform", `translate(-19,-168) scale(${1 + .15 * Math.sin(now * .03)})`);
 
+  if (anim.juggle > 0) anim.spin += .09;
   drawSweat(now);
   drawDust(now);
   els.cloud.setAttribute("transform", `rotate(${anim.cloudLean}) scale(${1 + anim.cloudSquash},${1 - anim.cloudSquash})`);
