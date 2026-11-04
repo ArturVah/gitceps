@@ -6,7 +6,7 @@
 
 A small macOS app and git hooks. He pops up in the corner of your screen when you push, pull, rebase or clone, and blocks pushes that contain passwords or API keys.
 
-<img src=".github/assets/demo.gif" alt="A commit called 'fix: small typo' with 3,214 lines. He reads it, the camera zooms in on his face, he shouts SMALL?!, lifts it into the cloud and collapses." width="720">
+<img src=".github/assets/demo.gif" alt="A real git push from IntelliJ's terminal of a commit called 'fix: small typo' with 3,214 lines. He runs into the corner of the screen, reads it, the camera zooms in and he shouts SMALL?!, then lifts it into the cloud and collapses." width="900">
 
 </div>
 
