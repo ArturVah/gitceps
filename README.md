@@ -48,12 +48,13 @@ He appears in the bottom-right corner of the screen your mouse is on, for a few 
 | `git push --force` | Screams while the screen shakes. |
 | A push git refuses because someone pushed first | The bar bounces off the cloud and lands on his foot. |
 | A password or API key | Says "NOPE", throws your code away and stops the push. |
+| `git pull` of 50+ lines | Tug of war with the cloud over your teammates' commits. Past 400 lines, the cloud wins and he gets yanked off his feet. |
 
 ## Settings
 
 ```sh
 gitceps list                   # each switch and whether it's on
-gitceps disable push           # no animation when you push, in every repo
+gitceps disable pull           # no animation when you pull, in every repo
 gitceps disable all --here     # no animation in the repo you're in
 gitceps disable secrets        # skip the secret check
 gitceps off                    # turn Gitceps off completely

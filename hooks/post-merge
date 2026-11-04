@@ -1,1 +1,31 @@
-forward
+#!/bin/bash
+# Gitceps' post-merge hook. Git runs it after a pull or merge that brought commits in.
+# Only pulls of 50+ lines get a reaction, so everyday small pulls stay quiet.
+GITCEPS_HOME="$(cd "$(dirname "$0")/.." && pwd)"
+LOG="$HOME/Library/Logs/gitceps.log"
+
+# The repo's own post-merge hook goes first (see hooks/forward).
+own="$(git rev-parse --git-common-dir)/hooks/post-merge"
+if [ -x "$own" ] && ! [ "$own" -ef "$0" ]; then "$own" "$@"; fi
+
+enabled() { [ "$(git config --type=bool --default true --get "gitceps.$1")" = true ]; }
+enabled all && enabled pull || exit 0
+
+# What came in: the commits reachable from HEAD that ORIG_HEAD (where we were) couldn't reach.
+# A merge commit git just made is ours, so it's skipped.
+incoming() { git log --format="$1" --no-merges ORIG_HEAD..HEAD; }
+read -r ins del < <(git diff --numstat ORIG_HEAD HEAD | awk '$1 ~ /^[0-9]+$/ { i += $1; d += $2 } END { print i + 0, d + 0 }')
+[ $((ins + del)) -ge 50 ] || exit 0
+
+commits=$(incoming %H | wc -l | tr -d ' ')
+msgs=$(incoming %s | head -4)
+msg=$(incoming %s | head -1)
+from=$(incoming %an | sort | uniq -c | sort -rn | head -1 | sed -E 's/^ *[0-9]+ //')
+repo=$(basename "$(git remote get-url origin 2>/dev/null | sed 's#/*$##')" .git)
+
+if [ -n "$GITCEPS_DRY" ]; then
+  echo "gitceps would play: pull (+$ins -$del, $commits commits from $from, to: ${repo:-origin}, msg: $msg)" >&2
+else ( "$GITCEPS_HOME/app/gitceps-app" --mode pull --ins "$ins" --del "$del" --msg "$msg" --msgs "$msgs" \
+      --commits "$commits" --from "$from" --remote "${repo:-origin}" >>"$LOG" 2>&1 & )
+fi
+exit 0

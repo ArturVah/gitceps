@@ -9,6 +9,7 @@
 //   cloud     [text, color] shown under the cloud
 //   puff      true: dust where the bar meets the floor
 //   forklift  true: the forklift appears, and its driver does the talking from then on
+//   rope      [commit messages]: a rope drops from the cloud with those tied along it
 //   to, ms    animate values from `anim` (engine.js) over ms milliseconds;
 //             optional ease: "inOut" (default), "in", "out", "back"
 //   ms        on its own: wait
@@ -160,6 +161,50 @@ const SCENES = {
     { to: { hop: 0, tilt: 0, hands: 58 }, ms: 160, ease: "in" },
     { face: "sus", say: "should've pulled first", ms: 1800 },
   ],
+
+  // git pull: the code comes down from the cloud on a rope, to his right, and the two of them fight
+  // over it. A big pull is one he loses: the cloud yanks him off his feet.
+  pull: push => {
+    const big = push.ins + push.del >= 400;
+    const barAt = 120;   // where the rope lands, right of him
+    // One heave: he leans back hard, the cloud stretches toward him, then both ease off a bit.
+    const heave = (lean, ms) => [
+      { to: { tilt: -lean, squat: 14, cloudLean: lean * .7, ropeSlack: lean * 2, barX: barAt - lean * 1.2 }, ms, ease: "out" },
+      { to: { tilt: -lean * .6, squat: 8, cloudLean: lean * .3, ropeSlack: lean, barX: barAt - lean * .6 }, ms: ms * .8 },
+    ];
+    return [
+      ...runIn(),
+      { face: "calm", say: "incoming.", ms: 600 },
+      { rope: push.msgs || [push.msg], to: { rope: 1, barX: barAt, barHeight: bar.radius + 50 }, ms: 900, ease: "out" },
+      { say: "", face: "sus", to: { broX: barAt - 60, squat: 8 }, ms: 400 },
+      { to: { hands: bar.radius + 50 }, ms: 250 },
+      { hold: true, face: "strain", say: "gimme that.", ms: 500 },
+      ...heave(14, 420), ...heave(20, 380),
+      { face: "scream", say: "GIVE. IT.", sweat: true, to: { red: .8 }, ms: 450 },
+      ...heave(26, 340),
+      ...(big
+        ? [ // the cloud wins
+            { face: "shock", say: "wait no", to: { red: 0 }, ms: 400 },
+            { say: "", to: { hop: 330, barHeight: 410, barX: 0, tilt: -60, cloudLean: 14, ropeSlack: 0, broX: 0 }, ms: 500, ease: "in" },
+            { hold: false, rope: [], to: { rope: 0, cloudSquash: .15, cloudLean: 0 }, ms: 150 },
+            { face: "dead", sweat: false, to: { cloudSquash: 0 }, ms: 200, ease: "back" },
+            { to: { hop: 0, tilt: 84, hands: 40, barOpacity: 0 }, ms: 450, ease: "in" },
+            { puff: true, to: { quake: 5, squash: .12 }, ms: 80 },
+            { to: { quake: 0, squash: 0 }, ms: 250, ease: "out" },
+            { cloud: ["✓ merged", GREEN], say: `${(push.ins + push.del).toLocaleString("en-US")} lines. of course.`, ms: 2000 },
+          ]
+        : [ // he wins, and goes over backwards with the prize
+            { face: "strain", to: { tilt: -34, squat: 18, cloudLean: 22, ropeSlack: 90, barX: barAt - 50 }, ms: 500, ease: "out" },
+            { hold: false, rope: [], face: "shock", say: "", to: { rope: 0, cloudSquash: -.1 }, ms: 90 },
+            { to: { tilt: -84, hop: 10, barX: barAt - 110, barHeight: bar.radius, hands: 120, cloudLean: 0, cloudSquash: 0 }, ms: 380, ease: "in" },
+            { puff: true, to: { hop: 0, quake: 4, squash: .1 }, ms: 80 },
+            { to: { quake: 0, squash: 0 }, ms: 250, ease: "out" },
+            { cloud: ["✓ merged", GREEN], face: "proud", sweat: false, say: "mine now.", to: { red: 0 }, ms: 1200 },
+            { to: { barOpacity: 0 }, ms: 400 },
+            { ms: 500 },
+          ]),
+    ];
+  },
 
   secret: () => [
     ...dropBar(.2), ...runIn(),

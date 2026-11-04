@@ -9,8 +9,8 @@ GITCEPS_HOME="${GITCEPS_HOME:-$(cd "$(dirname "$0")/.." && pwd)}"
 hooks="$GITCEPS_HOME/hooks"
 current=$(git config --global core.hooksPath || true)
 
-# push: the push animation. all: every animation. secrets: the secret check (independent of "all").
-SWITCHES="push all secrets"
+# push, pull: those animations. all: every animation. secrets: the secret check (independent of "all").
+SWITCHES="push pull all secrets"
 
 usage() {
   echo "usage: gitceps on | off | status | list | enable <switch> [--here] | disable <switch> [--here]" >&2

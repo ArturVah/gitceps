@@ -40,11 +40,15 @@ const anim = {
   cloudSquash: 0,   // the cloud flattens when code lands in it
   forkliftX: 520,   // forklift x offset from SPOT
   forkHeight: 0,
+  rope: 0,          // 0..1, how much of the rope hangs down from the cloud
+  cloudLean: 0,     // cloud tilt in degrees, positive leans it toward him (right)
+  ropeSlack: 0,     // how much the rope bows sideways, for the tug
 };
 let holding = false;         // while true his hands stick to the bar
 let sweating = false;
 let puffedAt = -Infinity;    // when the last dust puff started
 let forkliftShown = false;   // once the forklift is on screen, its driver does the talking
+let ropeShown = false;
 let bubble = { w: 0, h: 0 };
 let bar = { radius: 0, plates: [] };   // radius of the biggest plate = height of the bar resting on the floor
 
@@ -78,7 +82,8 @@ const shorten = (text, max = 28) => text.length > max ? text.slice(0, max - 1) +
 // ---------- Playing a scene ----------
 // Entry point. The Mac app calls play({ mode, ins, del, msg, secret, remote }) once the page has loaded.
 async function play(push) {
-  push = { mode: "normal", msg: "", secret: "", ...push, ins: Number(push.ins) || 0, del: Number(push.del) || 0 };
+  push = { mode: "normal", msg: "", secret: "", from: "", ...push, ins: Number(push.ins) || 0, del: Number(push.del) || 0, commits: Number(push.commits) || 0 };
+  if (typeof push.msgs === "string") push.msgs = push.msgs.split("\n").filter(Boolean);
   push.msg ||= "update";
   els.cloudName.textContent = shorten(push.remote || "origin", 18);
   buildBar(push);
@@ -100,6 +105,7 @@ async function run(steps) {
     if (step.cloud) setCloud(...step.cloud);
     if (step.puff) puff();
     if (step.forklift) { els.forklift.removeAttribute("hidden"); forkliftShown = true; }
+    if (step.rope) { buildRope(step.rope); els.rope.removeAttribute("hidden"); ropeShown = true; }
     if (step.to) await tween(step.to, step.ms, step.ease);
     else if (step.ms) await wait(step.ms);
   }
@@ -183,7 +189,9 @@ function buildBar(push) {
 
   // A name tag tied to the bar: commit message, then size. It hangs right of his head so it never hides his face.
   const n = v => v.toLocaleString("en-US");
-  const detail = push.mode === "secret" ? shorten(push.secret || "secret") : `+${n(push.ins)} −${n(push.del)}`;
+  const detail = push.mode === "secret" ? shorten(push.secret || "secret")
+    : push.mode === "pull" ? `${n(push.commits || 1)} commit${push.commits == 1 ? "" : "s"} from ${shorten(push.from || "a teammate", 16)}`
+    : `+${n(push.ins)} −${n(push.del)}`;
   els.barTag.textContent = "";
   svg("path", { d: `M60 -3 V${-radius - 12}`, stroke: "#d8c98d", "stroke-width": 1.5 }, els.barTag);
   const tag = svg("g", { transform: `translate(30,${-radius - 48})`, "font-size": 12, "font-family": "ui-monospace,Menlo,monospace" }, els.barTag);
@@ -191,6 +199,41 @@ function buildBar(push) {
   svg("text", { x: 9, y: 15, fill: "#5a4e1f" }, tag).textContent = shorten(push.msg);
   svg("text", { x: 9, y: 29, fill: "#8a7a3a" }, tag).textContent = detail;
   box.setAttribute("width", tag.getBBox().width + 18);
+}
+
+// Ties the incoming commit messages along the rope, newest nearest the bar.
+function buildRope(messages) {
+  const svg = (tag, attrs, parent) => {
+    const e = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    return parent.appendChild(e);
+  };
+  els.ropeTags.textContent = "";
+  messages.slice(0, 3).forEach((m, i) => {
+    const g = svg("g", { "data-at": .22 + i * .2 }, els.ropeTags);
+    const box = svg("rect", { y: -9, height: 18, rx: 4, fill: "#fff7d6", stroke: "#d8c98d" }, g);
+    const t = svg("text", { y: 4, fill: "#5a4e1f", "text-anchor": "end" }, g);
+    t.textContent = shorten(m, 20);
+    const w = t.getBBox().width + 12;
+    t.setAttribute("x", -14);
+    box.setAttribute("x", -8 - w);
+    box.setAttribute("width", w);
+  });
+}
+
+// The rope hangs from the cloud. Its lower end is the bar; the middle bows by ropeSlack.
+function drawRope() {
+  const topX = SPOT, topY = 108;
+  const endX = SPOT + anim.barX, endY = FLOOR - anim.barHeight;
+  const x = lerp(topX, endX, anim.rope), y = lerp(topY, endY, anim.rope);
+  const mx = (topX + x) / 2 + anim.ropeSlack, my = (topY + y) / 2;
+  els.ropeLine.setAttribute("d", `M${topX} ${topY} Q${mx} ${my} ${x} ${y}`);
+  for (const g of els.ropeTags.children) {
+    const t = Number(g.dataset.at) * anim.rope;
+    const px = (1 - t) ** 2 * topX + 2 * (1 - t) * t * mx + t * t * x;
+    const py = (1 - t) ** 2 * topY + 2 * (1 - t) * t * my + t * t * y;
+    g.setAttribute("transform", `translate(${px},${py})`);
+  }
 }
 
 // ---------- Drawing ----------
@@ -337,8 +380,9 @@ function render(now) {
 
   drawSweat(now);
   drawDust(now);
-  els.cloud.setAttribute("transform", `scale(${1 + anim.cloudSquash},${1 - anim.cloudSquash})`);
+  els.cloud.setAttribute("transform", `rotate(${anim.cloudLean}) scale(${1 + anim.cloudSquash},${1 - anim.cloudSquash})`);
   if (forkliftShown) drawForklift(now);
+  if (ropeShown) drawRope();
   drawBubble(pose);
   els.stage.setAttribute("opacity", anim.opacity);
   els.stage.setAttribute("transform", `translate(${jolt(anim.quake)},${jolt(anim.quake)})`);

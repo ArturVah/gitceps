@@ -1,6 +1,6 @@
 #!/bin/bash
 # Makes a commit of the chosen kind in the sandbox repo (see setup.sh) and pushes it.
-# Usage: demo/try.sh tiny | normal | huge | forklift | liar | force | rejected | secret
+# Usage: demo/try.sh tiny | normal | huge | forklift | liar | force | rejected | secret | pull | bigpull
 cd "$(dirname "$0")/repo" || { echo "Run demo/setup.sh first."; exit 1; }
 
 # Writes N lines of fake code to a file (different every run, so the diff is always N+ lines).
@@ -41,6 +41,20 @@ case "$1" in
     git push
     git pull -q --rebase && git push -q --no-verify   # catch up quietly so the next demo starts clean
     exit ;;
+  pull | bigpull)
+    # A "teammate" pushes a few commits from a throwaway clone, then we pull them.
+    teammate=$(mktemp -d)
+    git clone -q ../demo-app.git "$teammate"
+    lines=180; [ "$1" = bigpull ] && lines=2400
+    for n in 1 2 3; do
+      fake_code $((lines / 3)) "$teammate/team$n.js"
+      git -C "$teammate" add "team$n.js"
+      git -C "$teammate" -c user.name=Sam -c user.email=sam@example.com commit -qm "feat: teammate's part $n"
+    done
+    git -C "$teammate" push -q --no-verify
+    rm -rf "$teammate"
+    git pull -q --no-rebase
+    exit ;;
   secret)
     # Fake key, assembled at runtime so no key-shaped string lives in this repo.
     printf 'STRIPE_KEY=%s_%s_%s\n' sk live 51FAKEfakeFAKE0000demo > .env
@@ -49,6 +63,6 @@ case "$1" in
     git reset -q --hard HEAD~1   # drop the fake-secret commit so the demo keeps working
     exit ;;
   *)
-    echo "usage: demo/try.sh tiny|normal|huge|forklift|liar|force|rejected|secret"; exit 1 ;;
+    echo "usage: demo/try.sh tiny|normal|huge|forklift|liar|force|rejected|secret|pull|bigpull"; exit 1 ;;
 esac
 git push
