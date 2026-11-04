@@ -32,25 +32,28 @@ repo_name() {
 # GITCEPS_DRY=1 prints what would play instead (for testing without the overlay).
 play() {
   local mode=$1 home; shift
-  if [ -n "$GITCEPS_DRY" ]; then echo "gitceps would play: $mode ($*)" >&2; return; fi
+  if [ -n "${GITCEPS_DRY:-}" ]; then echo "gitceps would play: $mode ($*)" >&2; return; fi
   home="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
   ( "$home/app/gitceps-app" --mode "$mode" "$@" >>"$LOG" 2>&1 & )
 }
 
-# The pull reaction. It's a pull when the branch now contains its upstream (e.g. origin/main) and
-# the upstream brought commits that weren't here before (BASE is where the branch was). Returns 1
-# when this isn't a pull, so the caller can react another way. Pulls under 50 lines stay quiet.
+# The pull reaction, for the commits that arrived between BASE (where the branch was) and TIP (what
+# was merged in, or rebased onto). It's a pull when `git pull` is the one running git (it labels its
+# work "pull ..."), or when TIP is the branch's upstream itself, which is how IDEs that fetch and
+# then merge or rebase look. Returns 1 when this isn't a pull, so the caller can react another way.
+# Pulls under 50 lines stay quiet.
 pull_reaction() {
-  local up log ins del
-  up=$(git rev-parse -q --verify '@{upstream}' 2>/dev/null) || return 1
-  git merge-base --is-ancestor "$up" HEAD || return 1
-  log=$(git log --no-merges --format='%an%x09%s' "$1..$up")   # author <tab> subject, newest first
-  [ -n "$log" ] || return 1
+  local base=$1 tip=$2 log ins del
+  if [[ "${GIT_REFLOG_ACTION:-}" != pull* ]]; then
+    [ "$(git rev-parse "$tip")" = "$(git rev-parse -q --verify '@{upstream}' 2>/dev/null)" ] || return 1
+  fi
+  [ -n "$(git rev-list -1 --no-merges "$base..$tip")" ] || return 1
   enabled all && enabled pull || return 0
-  read -r ins del < <(git diff --numstat "$1...$up" | awk '$1 ~ /^[0-9]+$/ { i += $1; d += $2 } END { print i + 0, d + 0 }')
+  read -r ins del < <(git diff --numstat "$base...$tip" | awk '$1 ~ /^[0-9]+$/ { i += $1; d += $2 } END { print i + 0, d + 0 }')
   [ $((ins + del)) -ge 50 ] || return 0
+  log=$(git log --no-merges --format='%an%x09%s' "$base..$tip")   # author <tab> subject, newest first
   play pull --ins "$ins" --del "$del" --commits "$(grep -c . <<<"$log")" \
-    --msg "$(head -1 <<<"$log" | cut -f2)" --msgs "$(head -3 <<<"$log" | cut -f2)" \
+    --msg "$(head -1 <<<"$log" | cut -f2-)" --msgs "$(head -3 <<<"$log" | cut -f2-)" \
     --from "$(cut -f1 <<<"$log" | sort | uniq -c | sort -rn | head -1 | sed -E 's/^ *[0-9]+ //')" \
     --remote "$(repo_name)"
 }

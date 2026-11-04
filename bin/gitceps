@@ -5,10 +5,10 @@
 #   gitceps list                                 each switch, and whether it's on where you are
 #   gitceps enable | disable <switch> [--here]   --here: only in the repo you're in
 set -euo pipefail
-GITCEPS_HOME="${GITCEPS_HOME:-$(cd "$(dirname "$0")/.." && pwd)}"
+GITCEPS_HOME="${GITCEPS_HOME:-$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)}"   # works through symlinks
 hooks="$GITCEPS_HOME/hooks"
 . "$hooks/lib.sh"   # for enabled()
-current=$(git config --global core.hooksPath || true)
+current=$(git config --global --type=path core.hooksPath || true)   # --type=path expands ~
 
 # push, pull, amend, rebase, clone: those animations. all: every animation. secrets: the secret check (independent of "all").
 SWITCHES="push pull amend rebase clone all secrets"
@@ -41,7 +41,7 @@ case "${1:-}" in
       echo "Your global core.hooksPath is $current, not this Gitceps ($hooks), so it was left alone." >&2
       exit 1
     fi
-    if is_ours "$(git config --local core.hooksPath 2>/dev/null || true)"; then
+    if is_ours "$(git config --local --type=path core.hooksPath 2>/dev/null || true)"; then
       echo "This repo still turns him on itself. To stop that too: git config --unset core.hooksPath"
     fi ;;
   status)

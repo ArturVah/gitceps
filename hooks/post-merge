@@ -1,7 +1,8 @@
 #!/bin/bash
 # Gitceps' post-merge hook. Git runs it after a merge or pull that brought commits in.
-# Only a merge that takes in the branch's upstream (a pull) gets a reaction.
+# Only a pull gets a reaction; merging a local branch stays quiet.
 . "$(dirname "$0")/lib.sh"
 run_own "$@"   # git ignores this hook's exit status
-pull_reaction ORIG_HEAD
+# What came in: the merged parent, or HEAD itself after a fast-forward.
+pull_reaction ORIG_HEAD "$(git rev-parse -q --verify HEAD^2 || git rev-parse HEAD)"
 exit 0
