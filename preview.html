@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Push Bro preview</title>
+<!-- Plays the same overlay.html the Mac app shows, next to a fake terminal. -->
+<style>
+  :root { --bg:#fff; --ink:#1d1d1f; --muted:#6e6e73; --line:#d2d2d7; --desk:#e8e8ed; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#1d1d1f; --ink:#f5f5f7; --muted:#a1a1a6; --line:#424245; --desk:#2c2c2e; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+  main { max-width:900px; margin:0 auto; padding:24px 16px 48px; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  p { margin:0 0 14px; color:var(--muted); }
+  .pushes { display:flex; flex-wrap:wrap; gap:6px; margin:0 0 14px; }
+  button { font:inherit; font-size:13px; padding:5px 10px; border-radius:6px; border:1px solid var(--line);
+           background:var(--bg); color:var(--ink); cursor:pointer; }
+  button[aria-pressed="true"] { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+  .desk { position:relative; aspect-ratio:16/10; background:var(--desk); border:1px solid var(--line); overflow:hidden; }
+  pre { position:absolute; left:3%; top:5%; width:62%; margin:0; padding:10px 12px; background:#1d1d1f; color:#d7dae0;
+        border-radius:6px; font:clamp(9px,1.5vw,13px)/1.55 ui-monospace,Menlo,monospace; white-space:pre-wrap; overflow-wrap:anywhere; }
+  .ok { color:#7ee787; } .err { color:#ff7b72; } .warn { color:#e3b341; } .dim { color:#8b949e; }
+  iframe { position:absolute; right:1%; bottom:1%; width:56%; aspect-ratio:480/352; border:0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Push Bro preview</h1>
+  <p>The same animation the Mac app shows when you run <code>git push</code>.</p>
+  <div class="pushes" id="pushes"></div>
+  <div class="desk">
+    <pre id="out"></pre>
+    <iframe id="bro" title="Push Bro animation"></iframe>
+  </div>
+</main>
+<script>
+const REMOTE = "github.com:you/app.git";
+const sha = () => Math.random().toString(16).slice(2, 9);
+const pushed = () => [["To " + REMOTE], [`   ${sha()}..${sha()}  main -> main`, "ok"]];
+const failed = ["error: failed to push some refs to '" + REMOTE + "'", "err"];
+
+const PUSHES = {
+  tiny:     { label: "1 line",       push: { ins: 1, del: 1, msg: "fix: typo in README" } },
+  normal:   { label: "60 lines",     push: { ins: 60, del: 0, msg: "feat: add dark mode" } },
+  huge:     { label: "5,090 lines",  push: { ins: 3214, del: 1876, msg: "refactor: rewrite everything" } },
+  forklift: { label: "12,000 lines", push: { ins: 12000, del: 0, msg: "chore: vendor the whole internet" } },
+  liar:     { label: "3,214 lines called \"small typo\"", push: { mode: "huge", ins: 3214, del: 0, msg: "fix: small typo" } },
+  force:    { label: "--force",      push: { ins: 1, del: 1, msg: "WIP do not merge" }, cmd: "git push --force",
+              out: () => [["To " + REMOTE], [` + ${sha()}...${sha()} main -> main (forced update)`, "warn"]] },
+  rejected: { label: "rejected",     push: { ins: 86, del: 12, msg: "feat: dark mode" },
+              out: () => [["To " + REMOTE], [" ! [rejected]        main -> main (fetch first)", "err"], failed] },
+  secret:   { label: ".env file",    push: { ins: 1, del: 0, msg: "chore: add config", secret: ".env" },
+              out: () => [["push-bro: NOPE. That looks like a secret (.env). Push blocked.", "warn"],
+                          ["    If it's a fake test value: git push --no-verify", "dim"], failed] },
+};
+
+const out = document.getElementById("out"), bro = document.getElementById("bro"), buttons = document.getElementById("pushes");
+let current = 0;
+
+function print(text, cls) {
+  const line = document.createElement("span");
+  if (cls) line.className = cls;
+  line.textContent = text + "\n";
+  out.appendChild(line);
+}
+
+async function run(name) {
+  const { push, cmd = "git push", out: lines = pushed } = PUSHES[name];
+  buttons.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.push === name));
+  bro.src = "overlay/overlay.html?" + new URLSearchParams({ mode: name, remote: "app", ...push });
+  const id = ++current;
+  out.textContent = "";
+  print(`$ git commit -m "${push.msg}"`, "dim");
+  const typed = document.createElement("span");
+  out.appendChild(typed);
+  for (const ch of "$ " + cmd) {
+    if (id !== current) return;   // another push was picked while typing
+    typed.textContent += ch;
+    await new Promise(r => setTimeout(r, 30));
+  }
+  typed.textContent += "\n";
+  lines().forEach(l => print(...l));
+}
+
+for (const [name, { label }] of Object.entries(PUSHES)) {
+  const b = document.createElement("button");
+  b.dataset.push = name;
+  b.textContent = label;
+  b.addEventListener("click", () => run(name));
+  buttons.appendChild(b);
+}
+run("huge");
+</script>
+</body>
+</html>

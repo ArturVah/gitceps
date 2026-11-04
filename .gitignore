@@ -1,0 +1,9 @@
+# Private notes and research. Never published.
+private/
+
+# Build output and the demo's sandbox repos
+app/pushbro
+demo/repo/
+demo/demo-app.git/
+
+.DS_Store
