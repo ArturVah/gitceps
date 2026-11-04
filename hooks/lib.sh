@@ -37,25 +37,18 @@ play() {
   ( "$home/app/gitceps-app" --mode "$mode" "$@" >>"$LOG" 2>&1 & )
 }
 
-# Is any of the given commits the current branch's upstream (e.g. origin/main)?
+# Does REF name the current branch's upstream (e.g. origin/main)?
 is_upstream() {
-  local up c
-  up=$(git rev-parse -q --verify '@{upstream}' 2>/dev/null) || return 1
-  for c in "$@"; do [ "$(git rev-parse -q --verify "$c")" = "$up" ] && return 0; done
-  return 1
+  local ref up
+  { read -r ref; read -r up; } < <(git rev-parse "$1" '@{upstream}' 2>/dev/null)
+  [ -n "$up" ] && [ "$ref" = "$up" ]
 }
 
 # The pull reaction, for the commits between BASE (where the branch was) and TIP (where they ended).
-# It's a pull when `git pull` is running git (it labels its work "pull ..."), or when one of the
-# commits passed after TIP is the branch's upstream: merging your upstream is what an IDE's
-# fetch-then-merge does. Returns 1 when this isn't a pull, so the caller can react another way.
-# Pulls under 50 lines stay quiet.
+# The caller decides that it was a pull. Pulls under 50 lines, or with nothing new, stay quiet.
 pull_reaction() {
   local base=$1 tip=$2 log ins del
-  shift 2
-  [[ "${GIT_REFLOG_ACTION:-}" == pull* ]] || is_upstream "$@" || return 1
-  [ -n "$(git rev-list -1 --no-merges "$base..$tip")" ] || return 1
-  enabled pull || return 0
+  enabled pull && [ -n "$(git rev-list -1 --no-merges "$base..$tip")" ] || return 0
   read -r ins del < <(git diff --numstat "$base...$tip" | awk '$1 ~ /^[0-9]+$/ { i += $1; d += $2 } END { print i + 0, d + 0 }')
   [ $((ins + del)) -ge 50 ] || return 0
   log=$(git log --no-merges --format='%an%x09%s' "$base..$tip")   # author <tab> subject, newest first

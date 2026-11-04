@@ -1,10 +1,14 @@
 #!/bin/bash
 # Gitceps' post-merge hook. Git runs it after a merge or pull that brought commits in.
-# Only a pull gets a reaction; merging a local branch stays quiet.
+# Only a pull gets a reaction: `git pull` itself, or merging your upstream the way an IDE's
+# fetch-then-merge does. Merging a local branch stays quiet.
 . "$(dirname "$0")/lib.sh"
 run_own "$@"   # git ignores this hook's exit status
 enabled all || exit 0
-# The new commits are ORIG_HEAD..HEAD. What got merged is HEAD itself after a fast-forward, or the
-# other parent after a merge commit; if that's the upstream, it was a pull even without `git pull`.
-pull_reaction ORIG_HEAD HEAD HEAD HEAD^2
+
+# Git labels its work: "pull ..." during `git pull`, "merge <what>" for a plain merge.
+case "${GIT_REFLOG_ACTION:-}" in
+  pull*)     pull_reaction ORIG_HEAD HEAD ;;
+  "merge "*) is_upstream "${GIT_REFLOG_ACTION#merge }" && pull_reaction ORIG_HEAD HEAD ;;
+esac
 exit 0
