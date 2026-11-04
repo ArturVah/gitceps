@@ -3,6 +3,9 @@
 # Usage: demo/try.sh tiny | normal | huge | forklift | liar | force | rejected | secret | pull | bigpull | amend | rebase | clone
 cd "$(dirname "$0")/repo" || { echo "Run demo/setup.sh first."; exit 1; }
 
+# The "teammate" is someone else, so their git commands run without your hooks.
+as_teammate() { git -c core.hooksPath=/dev/null -c user.name=Sam -c user.email=sam@example.com "$@"; }
+
 # Writes N lines of fake code to a file (different every run, so the diff is always N+ lines).
 fake_code() { awk -v n="$1" -v r="$RANDOM" 'BEGIN { for (i = 1; i <= n; i++) print "const thing" i " = doSomething(" i ", " r ");" }' > "$2"; }
 
@@ -30,11 +33,11 @@ case "$1" in
   rejected)
     # A "teammate" pushes first from a throwaway clone, so the server has a commit we don't.
     teammate=$(mktemp -d)
-    git clone -q ../demo-app.git "$teammate"
+    as_teammate clone -q ../demo-app.git "$teammate"
     echo "teammate $RANDOM" >> "$teammate/teammate.txt"
-    git -C "$teammate" add teammate.txt
-    git -C "$teammate" -c user.name=Teammate -c user.email=teammate@example.com commit -qm "teammate's change"
-    git -C "$teammate" push -q --no-verify   # the teammate's push shouldn't show the bro
+    as_teammate -C "$teammate" add teammate.txt
+    as_teammate -C "$teammate" commit -qm "teammate's change"
+    as_teammate -C "$teammate" push -q
     rm -rf "$teammate"
     echo "my change $RANDOM" >> README.md
     git commit -qam "feat: my change"
@@ -44,14 +47,14 @@ case "$1" in
   pull | bigpull)
     # A "teammate" pushes a few commits from a throwaway clone, then we pull them.
     teammate=$(mktemp -d)
-    git clone -q ../demo-app.git "$teammate"
+    as_teammate clone -q ../demo-app.git "$teammate"
     lines=180; [ "$1" = bigpull ] && lines=2400
     for n in 1 2 3; do
       fake_code $((lines / 3)) "$teammate/team$n.js"
-      git -C "$teammate" add "team$n.js"
-      git -C "$teammate" -c user.name=Sam -c user.email=sam@example.com commit -qm "feat: teammate's part $n"
+      as_teammate -C "$teammate" add "team$n.js"
+      as_teammate -C "$teammate" commit -qm "feat: teammate's part $n"
     done
-    git -C "$teammate" push -q --no-verify
+    as_teammate -C "$teammate" push -q
     rm -rf "$teammate"
     git pull -q --no-rebase
     exit ;;

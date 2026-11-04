@@ -28,8 +28,15 @@ case "${1:-}" in
     git config --global core.hooksPath "$hooks"
     echo "Gitceps is on for every repo. Try a git push." ;;
   off)
-    if [ "$current" = "$hooks" ]; then git config --global --unset core.hooksPath; fi
-    echo "Gitceps is off." ;;
+    if [ "$current" = "$hooks" ]; then
+      git config --global --unset core.hooksPath
+      echo "Gitceps is off."
+    elif [ -z "$current" ]; then
+      echo "Gitceps is already off."
+    else
+      echo "Your global core.hooksPath is $current, not this Gitceps ($hooks), so it was left alone." >&2
+      exit 1
+    fi ;;
   status)
     if [ "$current" = "$hooks" ]; then echo "on"; else echo "off"; fi ;;
   list)

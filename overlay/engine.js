@@ -16,6 +16,13 @@ const SKIN = [242, 185, 141], FLUSHED = [239, 96, 74];
 const els = {};
 document.querySelectorAll("[id]").forEach(e => els[e.id] = e);
 
+// Creates an SVG element with the given attributes inside parent.
+function svg(tag, attrs, parent) {
+  const e = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  return parent.appendChild(e);
+}
+
 // ---------- Animated values ----------
 // Scenes animate these numbers; render() draws them every frame.
 const anim = {
@@ -40,8 +47,7 @@ const anim = {
   cloudSquash: 0,   // the cloud flattens when code lands in it
   forkliftX: 520,   // forklift x offset from SPOT
   forkHeight: 0,
-  juggle: 0,        // 0..1, lifts the plates off the bar into an arc over his head
-  spin: 0,          // juggling phase, keeps increasing while he juggles
+  juggle: 0,        // 0..1, lifts the plates off the bar into a circle over his head
   tiptoe: 0,        // 0..1, up on his toes with tiny steps
   rope: 0,          // 0..1, how much of the rope hangs down from the cloud
   cloudLean: 0,     // cloud tilt in degrees, positive leans it toward him (right)
@@ -171,24 +177,20 @@ function buildBar(push) {
   const radius = Math.round(clamp(10 + 9.5 * Math.log10(lines + 1), 11, 64));
   const count = lines >= 10000 ? 3 : lines >= 1000 ? 2 : 1;
   const width = Math.round(radius * (count > 1 ? .34 : .62)), gap = 3;
-  const svg = (tag, attrs, parent) => {
-    const e = document.createElementNS("http://www.w3.org/2000/svg", tag);
-    for (const k in attrs) e.setAttribute(k, attrs[k]);
-    return parent.appendChild(e);
-  };
 
   els.barbell.textContent = "";
-  bar = { radius, plates: [], shaft: svg("path", { fill: "#8a8f98" }, els.barbell) };
+  bar = { radius, plates: [], slots: count * 2, shaft: svg("path", { fill: "#8a8f98" }, els.barbell) };
   if (push.mode === "clone") { anim.barOpacity = 0; els.barTag.textContent = ""; return; }
   for (const side of [-1, 1]) {
     for (let i = 0; i < count; i++) {
       const r = radius * (1 - i * .12), g = svg("g", {}, els.barbell);
       svg("rect", { x: -width / 2, y: -r, width, height: r * 2, rx: 4, fill: i % 2 ? "#3a3d42" : "#26282c" }, g);
-      bar.plates.push({ g, x: (PLATE_EDGE - width / 2 - i * (width + gap)) * side });
+      const slot = (side < 0 ? 0 : count) + i;   // its place in the juggling circle
+      bar.plates.push({ g, slot, x: (PLATE_EDGE - width / 2 - i * (width + gap)) * side });
     }
     const collar = svg("g", {}, els.barbell);
     svg("rect", { x: -2.5, y: -8, width: 5, height: 16, rx: 1, fill: "#5d626b" }, collar);
-    bar.plates.push({ g: collar, collar: true, x: (PLATE_EDGE - count * width - (count - 1) * gap - 2.5) * side });
+    bar.plates.push({ g: collar, x: (PLATE_EDGE - count * width - (count - 1) * gap - 2.5) * side });
   }
 
   // A name tag tied to the bar: commit message, then size. It hangs right of his head so it never hides his face.
@@ -209,11 +211,6 @@ function buildBar(push) {
 
 // Ties the incoming commit messages along the rope, newest nearest the bar.
 function buildRope(messages) {
-  const svg = (tag, attrs, parent) => {
-    const e = document.createElementNS("http://www.w3.org/2000/svg", tag);
-    for (const k in attrs) e.setAttribute(k, attrs[k]);
-    return parent.appendChild(e);
-  };
   els.ropeTags.textContent = "";
   messages.slice(0, 3).forEach((m, i) => {
     const g = svg("g", { "data-at": .22 + i * .2 }, els.ropeTags);
@@ -294,20 +291,19 @@ function drawBar(now) {
     g.setAttribute("opacity", anim.barOpacity);
   }
   bar.shaft.setAttribute("d", `M${-BAR_HALF} ${end - 3} Q0 ${-end - 3} ${BAR_HALF} ${end - 3} V${end + 3} Q0 ${-end + 3} ${-BAR_HALF} ${end + 3} Z`);
-  const plates = bar.plates.filter(p => !p.collar), n = plates.length;
-  bar.plates.forEach((p, i) => {
+  for (const p of bar.plates) {
     const slope = Math.atan(2 * end * p.x / BAR_HALF ** 2) * 180 / Math.PI;
     let px = p.x, py = sagAt(now, p.x), rot = slope;
-    if (anim.juggle > 0 && !p.collar) {
-      // Each plate circles over his head, spaced evenly around the loop.
-      const k = plates.indexOf(p), a = anim.spin + k * 2 * Math.PI / n;
-      // Orbit centre is over his head; the bar's own y is subtracted because plates are drawn inside the bar group.
-      const jx = Math.cos(a) * 80, jy = -175 - Math.sin(a) * 60 + anim.barHeight;
-      px = lerp(p.x, jx, anim.juggle); py = lerp(py, jy, anim.juggle);
-      rot = lerp(slope, a * 180 / Math.PI, anim.juggle);
+    if (anim.juggle > 0 && p.slot !== undefined) {
+      // Juggling: plates circle over his head, evenly spaced. They're drawn inside the bar's group,
+      // so the circle's height is measured from the bar.
+      const a = now * .0054 + p.slot * 2 * Math.PI / bar.slots;
+      px = lerp(px, Math.cos(a) * 80, anim.juggle);
+      py = lerp(py, anim.barHeight - 175 - Math.sin(a) * 60, anim.juggle);
+      rot = lerp(rot, a * 180 / Math.PI, anim.juggle);
     }
     p.g.setAttribute("transform", `translate(${px},${py}) rotate(${rot})`);
-  });
+  }
   return [x, y];
 }
 
@@ -394,7 +390,6 @@ function render(now) {
   els.vein.setAttribute("opacity", clamp(red * 2.5 - 1.25, 0, 1));
   els.vein.setAttribute("transform", `translate(-19,-168) scale(${1 + .15 * Math.sin(now * .03)})`);
 
-  if (anim.juggle > 0) anim.spin += .09;
   drawSweat(now);
   drawDust(now);
   els.cloud.setAttribute("transform", `rotate(${anim.cloudLean}) scale(${1 + anim.cloudSquash},${1 - anim.cloudSquash})`);
