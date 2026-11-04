@@ -6,4 +6,6 @@ app/gitceps-app
 demo/repo/
 demo/demo-app.git/
 
+# Editor files
+.idea/
 .DS_Store
