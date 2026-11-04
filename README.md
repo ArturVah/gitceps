@@ -75,12 +75,12 @@ If the match is a fake test value, push anyway with `git push --no-verify`. The 
 
 ## Notes
 
-- **No sound yet:** he grunts in text only.
-- **Homebrew and Xcode:** Homebrew won't build from source while an installed Xcode is older than your macOS. Update Xcode, or use the curl installer.
-- **Browser preview:** clone the repo and open `preview.html` to watch every reaction without installing anything.
-- **Server-side hooks:** with Gitceps on, a repo's own `push-to-checkout` and `proc-receive` hooks don't run. Those are only used by repos that receive pushes and run custom code for them.
-- **Speed:** the hooks add about 10 ms to a commit or branch switch and about 90 ms to a push (the secret scan). The app uses about 60 MB while he's on screen and quits when he leaves; nothing runs in between.
-- **Logs:** the app writes to `~/Library/Logs/gitceps.log`.
+- There's no sound yet. He grunts in text only.
+- Homebrew won't build from source while an installed Xcode is older than your macOS. Update Xcode, or use the curl installer.
+- To watch every reaction without installing anything, clone the repo and open `preview.html`.
+- With Gitceps on, a repo's own `push-to-checkout` and `proc-receive` hooks don't run. Only repos that receive pushes and run custom code on them use those.
+- The hooks add about 10 ms to a commit or branch switch, and about 90 ms to a push because of the secret scan. The app uses about 60 MB while he's on screen and quits when he leaves.
+- Logs go to `~/Library/Logs/gitceps.log`.
 
 ## License
 
