@@ -46,3 +46,4 @@ The app must build with no warnings under `-swift-version 6`.
 1. Bump `version` in `install.sh` and commit.
 2. Tag and push: `git tag v0.2.0 && git push origin v0.2.0`.
 3. In `homebrew-tap`, update `url` and `sha256` in `Formula/push-bro.rb`. The checksum comes from `curl -sL https://github.com/ArturVah/push-bro/archive/refs/tags/v0.2.0.tar.gz | shasum -a 256`.
+4. Wait about five minutes before announcing: `raw.githubusercontent.com` keeps serving the old `install.sh` until its cache expires.
