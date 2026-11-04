@@ -67,6 +67,7 @@ If the match is a fake test value, push anyway with `git push --no-verify`. The 
 ## Notes
 
 - **No sound yet:** he grunts in text only.
+- **Homebrew and Xcode:** Homebrew won't build from source while an installed Xcode is older than your macOS. Update Xcode, or use the curl installer.
 - **Browser preview:** clone the repo and open `preview.html` to watch every reaction without installing anything.
 - **Logs:** the app writes to `~/Library/Logs/push-bro.log`.
 
