@@ -3,6 +3,8 @@
 # Only a pull gets a reaction; merging a local branch stays quiet.
 . "$(dirname "$0")/lib.sh"
 run_own "$@"   # git ignores this hook's exit status
-# What came in: the merged parent, or HEAD itself after a fast-forward.
-pull_reaction ORIG_HEAD "$(git rev-parse -q --verify HEAD^2 || git rev-parse HEAD)"
+enabled all || exit 0
+# The new commits are ORIG_HEAD..HEAD. What got merged is HEAD itself after a fast-forward, or the
+# other parent after a merge commit; if that's the upstream, it was a pull even without `git pull`.
+pull_reaction ORIG_HEAD HEAD HEAD HEAD^2
 exit 0
