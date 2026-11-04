@@ -32,6 +32,12 @@ main() {
   mkdir -p "$dest"
   cp -R "$tmp/app" "$tmp/overlay" "$tmp/hooks" "$tmp/bin" "$dest/"
 
+  # Upgrading from the old name: git still points at ~/.push-bro, which the new install replaces.
+  if [ "$(git config --global core.hooksPath)" = "$HOME/.push-bro/hooks" ]; then
+    git config --global --unset core.hooksPath
+    rm -rf "$HOME/.push-bro"
+  fi
+
   "$dest/bin/gitceps" on
   echo "To turn him off: ~/.gitceps/bin/gitceps off"
 }
