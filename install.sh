@@ -5,13 +5,17 @@
 set -euo pipefail
 
 main() {
-  local version="0.2.0" dest="$HOME/.push-bro"
+  local version="0.2.1" dest="$HOME/.push-bro"
 
   if [ "$(uname)" != Darwin ]; then
     echo "Push Bro only runs on macOS." >&2; exit 1
   fi
-  if ! xcrun --find swiftc >/dev/null 2>&1; then
-    echo "Push Bro needs Apple's Command Line Tools. Install them with: xcode-select --install" >&2; exit 1
+  local swift_error
+  if ! swift_error=$(xcrun --find swiftc 2>&1 >/dev/null); then
+    echo "Push Bro needs Apple's Swift compiler, and xcrun couldn't find it:" >&2
+    echo "  ${swift_error:-no details}" >&2
+    echo "If the Command Line Tools aren't installed: xcode-select --install" >&2
+    exit 1
   fi
   if [ -e "$dest" ] && [ ! -x "$dest/bin/push-bro" ]; then
     echo "$dest already exists and isn't Push Bro. Move it out of the way and run this again." >&2; exit 1

@@ -76,6 +76,19 @@ guard FileManager.default.fileExists(atPath: page.path) else {
     exit(1)
 }
 
+// One Push Bro on screen at a time. A push that arrives while he's busy waits its turn, for up to a
+// minute. The lock belongs to this process, so the system releases it when the app quits, even on a crash.
+let lockPath = FileManager.default.temporaryDirectory.appending(path: "push-bro.lock").path
+let lock = open(lockPath, O_CREAT | O_RDWR, 0o600)
+let deadline = Date(timeIntervalSinceNow: 60)
+while lock >= 0 && flock(lock, LOCK_EX | LOCK_NB) != 0 {
+    if Date() > deadline {
+        log("still busy after a minute, skipping this one")
+        exit(0)
+    }
+    Thread.sleep(forTimeInterval: 0.25)
+}
+
 let app = NSApplication.shared
 app.setActivationPolicy(.accessory)   // no Dock icon, never takes focus
 let overlay = Overlay(push: push, page: page)   // app.delegate is weak, so keep a strong reference
