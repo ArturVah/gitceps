@@ -16,9 +16,7 @@ case "$1" in
       play amend --commits 1 --msg "$(git log -1 --format=%s "$new")" --remote "$(repo_name)"
     fi ;;
   rebase)
-    # The first rewritten commit sits right on top of the new base.
-    onto=$(git rev-parse -q --verify "$new^")
-    [ -n "$onto" ] && pull_reaction ORIG_HEAD "$onto" && exit 0
+    pull_reaction ORIG_HEAD && exit 0   # `pull --rebase`, or a rebase onto the branch's upstream
     count=$(grep -c . <<<"$rewrites")
     if enabled rebase && [ "$count" -ge 3 ]; then
       play rebase --commits "$count" --msg "$(git log -1 --format=%s HEAD)" --remote "$(repo_name)"

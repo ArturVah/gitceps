@@ -295,12 +295,12 @@ function drawBar(now) {
     const slope = Math.atan(2 * end * p.x / BAR_HALF ** 2) * 180 / Math.PI;
     let px = p.x, py = sagAt(now, p.x), rot = slope;
     if (anim.juggle > 0 && p.slot !== undefined) {
-      // Juggling: plates circle over his head, evenly spaced. They're drawn inside the bar's group,
-      // so the circle's height is measured from the bar.
+      // Juggling: plates circle over his head, evenly spaced, tumbling a little. They're drawn inside
+      // the bar's group, so the circle's height is measured from the bar.
       const a = now * .0054 + p.slot * 2 * Math.PI / bar.slots;
       px = lerp(px, Math.cos(a) * 80, anim.juggle);
       py = lerp(py, anim.barHeight - 175 - Math.sin(a) * 60, anim.juggle);
-      rot = lerp(rot, a * 180 / Math.PI, anim.juggle);
+      rot += Math.sin(a) * 30 * anim.juggle;
     }
     p.g.setAttribute("transform", `translate(${px},${py}) rotate(${rot})`);
   }

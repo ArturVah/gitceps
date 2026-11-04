@@ -3,8 +3,10 @@
 # looking in each repo's own hooks folder. This script stands in for the other hook names (they
 # are symlinks to it) and runs the repo's own hook of the same name, so those keep working.
 #
-# Not forwarded: fsmonitor-watchman, which git finds through core.fsmonitor rather than by name,
-# and post-index-change and reference-transaction, which git runs so often that a stand-in
-# would slow down everyday commands.
+# Not forwarded:
+#   push-to-checkout, proc-receive: git changes how it handles a push just because these exist
+#   fsmonitor-watchman: git finds it through core.fsmonitor, not by name
+#   post-index-change, reference-transaction: git runs them so often that a stand-in would slow
+#   down everyday commands
 . "$(dirname "$0")/lib.sh"
 run_own "$@"
