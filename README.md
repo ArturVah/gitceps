@@ -61,9 +61,12 @@ gitceps disable rebase         # no animation on rebase, in every repo
 gitceps disable all --here     # no animation in the repo you're in
 gitceps disable secrets        # skip the secret check
 gitceps off                    # turn Gitceps off completely
+gitceps update                 # get the latest version
 ```
 
 `enable` turns a switch back on, and `on` brings him back. `all` mutes the animation but keeps the secret check. Settings are stored in git config under `[gitceps]`, and `--here` writes to the current repo's `.git/config`. With the curl install, the command is `~/.gitceps/bin/gitceps`.
+
+`gitceps update` keeps him on or off, as he was. If Homebrew installed him, update with `brew upgrade gitceps` instead.
 
 To uninstall, run `gitceps off` first, then `rm -rf ~/.gitceps` or `brew uninstall gitceps`. Skipping `off` leaves git looking for hooks in a folder that no longer exists, and your repos' own hooks stop running.
 

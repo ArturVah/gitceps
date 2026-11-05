@@ -4,6 +4,7 @@
 #   gitceps on | off | status                    for every git repo on this Mac
 #   gitceps list                                 each switch, and whether it's on where you are
 #   gitceps enable | disable <switch> [--here]   --here: only in the repo you're in
+#   gitceps update                               installs the latest version over this one
 set -euo pipefail
 GITCEPS_HOME="${GITCEPS_HOME:-$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)}"   # works through symlinks
 hooks="$GITCEPS_HOME/hooks"
@@ -14,7 +15,7 @@ current=$(git config --global --type=path core.hooksPath || true)   # --type=pat
 SWITCHES="push pull amend rebase clone all secrets"
 
 usage() {
-  echo "usage: gitceps on | off | status | list | enable <switch> [--here] | disable <switch> [--here]" >&2
+  echo "usage: gitceps on | off | status | list | update | enable <switch> [--here] | disable <switch> [--here]" >&2
   echo "switches: $SWITCHES" >&2
   exit 1
 }
@@ -65,6 +66,13 @@ case "${1:-}" in
       where="everywhere"
     fi
     echo "$name: $([ "$value" = true ] && echo on || echo off) $where" ;;
+  update)
+    if [ ! -f "$GITCEPS_HOME/VERSION" ]; then   # only install.sh writes it
+      echo "This Gitceps in $GITCEPS_HOME didn't come from install.sh, so update it the way you installed it (Homebrew: brew upgrade gitceps)." >&2
+      exit 1
+    fi
+    # exec: the installer replaces this very file.
+    exec bash -c 'set -o pipefail; curl -fsSL https://raw.githubusercontent.com/ArturVah/gitceps/main/install.sh | bash' ;;
   *)
     usage ;;
 esac

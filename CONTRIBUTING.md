@@ -17,7 +17,7 @@ git push / pull / commit --amend / rebase / clone
                 └── scenes.js    what he does for each reaction
 ```
 
-`bin/gitceps on` points git's global `core.hooksPath` at `hooks/`. The other hook names in that folder are symlinks to `hooks/forward`. A pull is whatever git itself labels a pull (`git pull`, merge or rebase), or a merge of the branch's upstream, as an IDE's fetch-then-merge does. `install.sh` downloads a tagged release into `~/.gitceps`, builds the app there and runs `gitceps on`. The Homebrew formula lives in [ArturVah/homebrew-tap](https://github.com/ArturVah/homebrew-tap).
+`bin/gitceps on` points git's global `core.hooksPath` at `hooks/`. The other hook names in that folder are symlinks to `hooks/forward`. A pull is whatever git itself labels a pull (`git pull`, merge or rebase), or a merge of the branch's upstream, as an IDE's fetch-then-merge does. `install.sh` downloads a tagged release into `~/.gitceps` and builds the app there. A first install runs `gitceps on`; `gitceps update` reruns the installer, which leaves that setting alone. The Homebrew formula lives in [ArturVah/homebrew-tap](https://github.com/ArturVah/homebrew-tap).
 
 `preview.html` plays the same `overlay/` files in a browser, next to a fake terminal. There are no dependencies and no build step for the animation. The scripts are plain scripts rather than ES modules, so the pages also work when opened straight from disk.
 
@@ -49,11 +49,12 @@ The app must build with no warnings under `-swift-version 6`.
 
 ## Release
 
-1. Bump `version` in `install.sh` and commit.
-2. Tag and push: `git tag v0.2.0 && git push origin v0.2.0`.
-3. Publish the release: `gh release create v0.2.0 --title "Gitceps 0.2.0" --notes "..."`. A workflow then attaches `gitceps-0.2.0.tar.gz` to it, which is what `install.sh` and Homebrew download.
-4. In `homebrew-tap`, update `url` and `sha256` in `Formula/gitceps.rb`. The checksum comes from `curl -sL https://github.com/ArturVah/gitceps/releases/download/v0.2.0/gitceps-0.2.0.tar.gz | shasum -a 256`.
-5. Wait about five minutes before announcing: `raw.githubusercontent.com` keeps serving the old `install.sh` until its cache expires.
+1. Bump `version` in `install.sh` and commit, but don't push `main` yet. The curl command and `gitceps update` run the `install.sh` on `main`, so it must not name a release whose archive isn't attached yet.
+2. Tag and push the tag: `git tag v0.2.0 && git push origin v0.2.0`.
+3. Publish the release: `gh release create v0.2.0 --title "Gitceps 0.2.0" --notes "..."`. A workflow then attaches `gitceps-0.2.0.tar.gz` to it, which is what `install.sh` and Homebrew download. Wait for it: `gh run watch`.
+4. Push `main`.
+5. In `homebrew-tap`, update `url` and `sha256` in `Formula/gitceps.rb`. The checksum comes from `curl -sL https://github.com/ArturVah/gitceps/releases/download/v0.2.0/gitceps-0.2.0.tar.gz | shasum -a 256`.
+6. Wait about five minutes before announcing: `raw.githubusercontent.com` keeps serving the old `install.sh` until its cache expires.
 
 GitHub counts downloads of attached files, so this shows installs per release (reinstalls and upgrades included):
 
