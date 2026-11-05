@@ -2,11 +2,11 @@
 
 # Gitceps
 
-**A gym bro who lifts your code every time you `git push`**
+**A gym bro who pushes your code to the cloud every time you `git push`**
 
 A small macOS app and git hooks. He pops up in the corner of your screen when you push, pull, rebase or clone, and blocks pushes that contain passwords or API keys.
 
-<img src=".github/assets/demo.gif" alt="A real git push from IntelliJ's terminal of a commit called 'fix: small typo' with 3,214 lines. He runs into the corner of the screen, reads it, the camera zooms in and he shouts SMALL?!, then lifts it into the cloud and collapses." width="900">
+<img src=".github/assets/demo.gif" alt="A real git push from IntelliJ's terminal of a commit called 'fix: small typo' with 3,214 lines. He runs into the corner of the screen, reads it, the camera zooms in and he shouts SMALL?!, then pushes it up into the cloud and collapses." width="900">
 
 </div>
 
@@ -40,7 +40,7 @@ He appears in the bottom-right corner of the screen your mouse is on, for a few 
 
 | Push | Reaction |
 |---|---|
-| 1 to 10 lines | Lifts it, bored: "this? seriously?" |
+| 1 to 10 lines | Pushes it up with one hand, bored: "this? seriously?" |
 | A normal push | "light weight, baby!" |
 | 400+ lines | Sweats, shakes, gets it up, then falls over. |
 | 10,000+ lines | Gives up and comes back driving a forklift. |
