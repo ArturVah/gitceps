@@ -51,5 +51,12 @@ The app must build with no warnings under `-swift-version 6`.
 
 1. Bump `version` in `install.sh` and commit.
 2. Tag and push: `git tag v0.2.0 && git push origin v0.2.0`.
-3. In `homebrew-tap`, update `url` and `sha256` in `Formula/gitceps.rb`. The checksum comes from `curl -sL https://github.com/ArturVah/gitceps/archive/refs/tags/v0.2.0.tar.gz | shasum -a 256`.
-4. Wait about five minutes before announcing: `raw.githubusercontent.com` keeps serving the old `install.sh` until its cache expires.
+3. Publish the release: `gh release create v0.2.0 --title "Gitceps 0.2.0" --notes "..."`. A workflow then attaches `gitceps-0.2.0.tar.gz` to it, which is what `install.sh` and Homebrew download.
+4. In `homebrew-tap`, update `url` and `sha256` in `Formula/gitceps.rb`. The checksum comes from `curl -sL https://github.com/ArturVah/gitceps/releases/download/v0.2.0/gitceps-0.2.0.tar.gz | shasum -a 256`.
+5. Wait about five minutes before announcing: `raw.githubusercontent.com` keeps serving the old `install.sh` until its cache expires.
+
+GitHub counts downloads of attached files, so this shows installs per release (reinstalls and upgrades included):
+
+```sh
+gh api repos/ArturVah/gitceps/releases -q '.[] | "\(.tag_name) \([.assets[].download_count] | add // 0)"'
+```

@@ -24,7 +24,7 @@ main() {
   echo "Downloading Gitceps $version..."
   tmp=$(mktemp -d)   # not local: the EXIT trap runs after main() has returned
   trap 'rm -rf "$tmp"' EXIT
-  curl -fsSL "https://github.com/ArturVah/gitceps/archive/refs/tags/v$version.tar.gz" | tar -xz -C "$tmp" --strip-components 1
+  curl -fsSL "https://github.com/ArturVah/gitceps/releases/download/v$version/gitceps-$version.tar.gz" | tar -xz -C "$tmp" --strip-components 1
 
   echo "Building the app..."
   xcrun swiftc -O -swift-version 6 "$tmp/app/main.swift" -o "$tmp/app/gitceps-app" -framework AppKit -framework WebKit
