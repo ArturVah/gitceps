@@ -47,6 +47,7 @@ const anim = {
   cloudSquash: 0,   // the cloud flattens when code lands in it
   forkliftX: 520,   // forklift x offset from SPOT
   forkHeight: 0,
+  tagSide: 1,       // 1: the bar's name tag hangs right of his head, -1: left of it
   juggle: 0,        // 0..1, lifts the plates off the bar into a circle over his head
   tiptoe: 0,        // 0..1, up on his toes with tiny steps
   rope: 0,          // 0..1, how much of the rope hangs down from the cloud
@@ -193,7 +194,8 @@ function buildBar(push) {
     bar.plates.push({ g: collar, x: (PLATE_EDGE - count * width - (count - 1) * gap - 2.5) * side });
   }
 
-  // A name tag tied to the bar: commit message, then size. It hangs right of his head so it never hides his face.
+  // A name tag tied to the bar: commit message, then size. It hangs beside his head so it never hides his face;
+  // anim.tagSide says which side, and drawBar places it.
   const n = v => v.toLocaleString("en-US");
   const detail = push.mode === "secret" ? shorten(push.secret || "secret")
     : push.mode === "pull" ? `${n(push.commits || 1)} commit${push.commits == 1 ? "" : "s"} from ${shorten(push.from || "a teammate", 16)}`
@@ -201,12 +203,14 @@ function buildBar(push) {
     : push.mode === "amend" ? "amended (after push)"
     : `+${n(push.ins)} −${n(push.del)}`;
   els.barTag.textContent = "";
-  svg("path", { d: `M60 -3 V${-radius - 12}`, stroke: "#d8c98d", "stroke-width": 1.5 }, els.barTag);
-  const tag = svg("g", { transform: `translate(30,${-radius - 48})`, "font-size": 12, "font-family": "ui-monospace,Menlo,monospace" }, els.barTag);
+  const string = svg("path", { stroke: "#d8c98d", "stroke-width": 1.5 }, els.barTag);
+  const tag = svg("g", { "font-size": 12, "font-family": "ui-monospace,Menlo,monospace" }, els.barTag);
   const box = svg("rect", { height: 36, rx: 5, fill: "#fff7d6", stroke: "#d8c98d" }, tag);
   svg("text", { x: 9, y: 15, fill: "#5a4e1f" }, tag).textContent = shorten(push.msg);
   svg("text", { x: 9, y: 29, fill: "#8a7a3a" }, tag).textContent = detail;
-  box.setAttribute("width", tag.getBBox().width + 18);
+  const tagWidth = tag.getBBox().width + 18;
+  box.setAttribute("width", tagWidth);
+  bar.tag = { string, label: tag, width: tagWidth };
 }
 
 // Ties the incoming commit messages along the rope, newest nearest the bar.
@@ -290,6 +294,11 @@ function drawBar(now) {
     g.setAttribute("transform", `translate(${x},${y}) rotate(${anim.barSpin})`);
     g.setAttribute("opacity", anim.barOpacity);
   }
+  if (bar.tag) {
+    const t = (1 - anim.tagSide) / 2, { string, label, width } = bar.tag;
+    string.setAttribute("d", `M${lerp(60, -60, t)} -3 V${-bar.radius - 12}`);
+    label.setAttribute("transform", `translate(${lerp(30, -30 - width, t)},${-bar.radius - 48})`);
+  }
   bar.shaft.setAttribute("d", `M${-BAR_HALF} ${end - 3} Q0 ${-end - 3} ${BAR_HALF} ${end - 3} V${end + 3} Q0 ${-end + 3} ${-BAR_HALF} ${end + 3} Z`);
   for (const p of bar.plates) {
     const slope = Math.atan(2 * end * p.x / BAR_HALF ** 2) * 180 / Math.PI;
@@ -342,7 +351,7 @@ function drawBubble(pose) {
   els.bubble.setAttribute("opacity", bubble.w ? 1 : 0);
   if (!bubble.w) return;
   const [tipX, tipY] = forkliftShown
-    ? [SPOT + anim.forkliftX + 80, FLOOR - 172]   // the driver's head
+    ? [SPOT + anim.forkliftX + 80, FLOOR - 178]   // just above the driver's hard hat
     : toPicture(pose, 14, -178 + anim.squat);
   const left = clamp(tipX - 24, VIEW.x + 8, VIEW.x + VIEW.w - 8 - bubble.w);
   const top = Math.max(VIEW.y + 6, tipY - 34 - bubble.h), bottom = top + bubble.h;

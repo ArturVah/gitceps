@@ -124,7 +124,7 @@ const SCENES = {
     { hold: false, say: "", sweat: false, to: { squat: 0, hands: 58, red: 0, jitter: 0, bend: 0 }, ms: 350 },
     { face: "bored", say: "hold on.", ms: 800 },
     ...runOff(),
-    { forklift: true, face: "cool", say: "beep. beep. beep.", to: { forkliftX: FORKLIFT_PARK, forkHeight: bar.radius - 4 }, ms: 1300, ease: "out" },
+    { forklift: true, face: "cool", say: "beep. beep. beep.", to: { forkliftX: FORKLIFT_PARK, forkHeight: bar.radius - 4, tagSide: -1 }, ms: 1300, ease: "out" },   // the tag slides out of the driver's face
     { say: "work smarter.", ms: 900 },
     { say: "", to: { forkHeight: 300, barHeight: 304 }, ms: 1500 },
     ...toCloud(400),
