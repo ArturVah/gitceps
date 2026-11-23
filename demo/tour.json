@@ -1,0 +1,123 @@
+{
+  "repo": "..",
+  "base": "v0.5.2",
+  "head": "v0.5.3",
+  "title": "v0.5.3: gitceps update",
+  "links": "https://github.com/ArturVah/gitceps/blob/{head}/{path}#L{from}-L{to}",
+  "steps": [
+    {
+      "title": "What this release changes",
+      "why": "Version 0.5.3 adds gitceps update, makes the installer safe to run again over an existing install, and installs from an archive attached to each release, so GitHub counts installs.",
+      "bro": "Release day, bro. Gitceps learns to update itself, and the installer can run twice without dropping the bar. Ninety lines. Light weight.",
+      "react": "intro",
+      "bubbles": ["v0.5.3. light weight.", "update day."],
+      "ranges": []
+    },
+    {
+      "title": "gitceps update",
+      "why": "gitceps update reruns the public installer from main. It refuses when there's no VERSION file, because only install.sh writes one, and tells a Homebrew install to use brew upgrade instead.",
+      "bro": "One command, fresh install script, straight from main. Installed with Homebrew? Then brew does your reps, not me.",
+      "react": "nod",
+      "bubbles": ["fresh script from main.", "brew? use brew upgrade."],
+      "note": { "kind": "good", "text": "exec hands the process over to the installer, which replaces this very file while it runs.", "source": "bin/gitceps:75" },
+      "ranges": [
+        ["bin/gitceps", 69, 75]
+      ]
+    },
+    {
+      "title": "Safe to run again",
+      "why": "Before it touches anything, the installer restores a copy an earlier update left behind, refuses a ~/.gitceps that isn't Gitceps, remembers whether he was on, and stops early when this version is already installed.",
+      "bro": "Look before you lift. Leftover from a cut-off update? Put it back. Somebody else's folder? Hands off. Same version? Rack it and go home.",
+      "react": "inspect",
+      "bubbles": ["look before you lift…", "same version? go home."],
+      "ranges": [
+        ["install.sh", 14, 28]
+      ]
+    },
+    {
+      "title": "A download GitHub counts",
+      "why": "The installer now downloads gitceps-<version>.tar.gz attached to the release instead of GitHub's automatic archive, because GitHub only counts downloads of attached files. A workflow builds and attaches that file whenever a release is published.",
+      "bro": "Every install now counts as a rep. A workflow packs the archive on release, the installer grabs it, and GitHub keeps score.",
+      "react": "nod",
+      "bubbles": ["every install = one rep.", "GitHub keeps score."],
+      "ranges": [
+        ["install.sh", 38, 40],
+        [".github/workflows/release-archive.yml", 6, 8],
+        [".github/workflows/release-archive.yml", 22, 25]
+      ]
+    },
+    {
+      "title": "The swap",
+      "why": "The new copy is built in ~/.gitceps.new and swapped in with two renames, so git never runs hooks from a half-copied folder.",
+      "bro": "Build it on the side, swap it in two moves. Half-copied hooks folder? Nope. Cut off halfway? The next run puts it back. That's a spotter.",
+      "react": "guard",
+      "bubbles": ["build it on the side…", "HALF-COPIED HOOKS?!", "NOPE.", "good spotter."],
+      "note": { "kind": "good", "text": "If an update stops between the two renames, the first check of the next run puts the old copy back.", "source": "install.sh:14" },
+      "ranges": [
+        ["install.sh", 44, 52]
+      ]
+    },
+    {
+      "title": "On or off, as before",
+      "why": "A fresh install turns Gitceps on. An update turns it on again only if it was on, which also points git at the new hooks in case a release moved them. If it was off, it stays off, and the installer says how to turn it on.",
+      "bro": "Was he on? He's back on. Was he off? He stays off. Updates don't touch your settings, bro.",
+      "react": "nod",
+      "bubbles": ["on stays on.", "off stays off."],
+      "ranges": [
+        ["install.sh", 54, 62]
+      ]
+    },
+    {
+      "title": "One gap worth knowing",
+      "why": "Between the two renames, ~/.gitceps doesn't exist. A git command run in that instant finds no hooks, so it runs without the animation and without the secret check.",
+      "bro": "Two moves means one blink where the gym is empty. A push in that blink skips the secret check. Tiny window. Know it, don't sweat it.",
+      "react": "nitpick",
+      "bubbles": ["clean swap.", "one blink, empty gym.", "know it. ship it."],
+      "note": { "kind": "warn", "text": "Worth knowing rather than fixing: the gap lasts two renames.", "source": "install.sh:50" },
+      "ranges": [
+        ["install.sh", 50, 51]
+      ]
+    }
+  ],
+  "skipped": [
+    {
+      "reason": "Docs: README and CONTRIBUTING describe update and the new release order",
+      "ranges": [
+        ["README.md", 64, 64],
+        ["README.md", 69, 70],
+        ["CONTRIBUTING.md", 20, 20],
+        ["CONTRIBUTING.md", 52, 63]
+      ]
+    },
+    {
+      "reason": "The usage line and the header comments now mention update",
+      "ranges": [
+        ["bin/gitceps", 7, 7],
+        ["bin/gitceps", 18, 18],
+        ["install.sh", 4, 4]
+      ]
+    },
+    {
+      "reason": "Version bump to 0.5.3",
+      "ranges": [
+        ["install.sh", 9, 9]
+      ]
+    },
+    {
+      "reason": "The check for a folder that isn't Gitceps, moved up to line 15 (step 3)",
+      "ranges": [
+        ["install.sh", 36, 36, "del"]
+      ]
+    },
+    {
+      "reason": "Workflow setup: the comment on why it exists, its name, permissions, checkout and token, and printing the checksum",
+      "ranges": [
+        [".github/workflows/release-archive.yml", 1, 4],
+        [".github/workflows/release-archive.yml", 10, 21],
+        [".github/workflows/release-archive.yml", 26, 26]
+      ]
+    }
+  ],
+  "summary": "Adds gitceps update and makes the installer safe to run again: it restores an interrupted update, refuses folders that aren't Gitceps, skips a version that's already there, swaps the new copy in with two renames, and keeps Gitceps on or off. Installs now download a release archive GitHub counts.",
+  "flag": "Worth knowing: during the two renames ~/.gitceps briefly doesn't exist, so a git command at that moment runs without hooks (install.sh:50)."
+}

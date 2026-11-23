@@ -4,7 +4,7 @@
 set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
 
-xcrun swiftc -O -swift-version 6 "$root/app/main.swift" -o "$root/app/gitceps-app" -framework AppKit -framework WebKit
+xcrun swiftc -O -swift-version 6 "$root"/app/*.swift -o "$root/app/gitceps-app" -framework AppKit -framework WebKit
 
 rm -rf "$root/demo/repo" "$root/demo/demo-app.git"
 git init -q --bare -b main "$root/demo/demo-app.git"

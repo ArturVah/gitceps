@@ -4,7 +4,7 @@
 
 **A gym bro who pushes your code to the cloud every time you `git push`**
 
-A small macOS app and git hooks. He pops up in the corner of your screen when you push, pull, rebase or clone, and blocks pushes that contain passwords or API keys.
+A small macOS app and git hooks. He pops up in the corner of your screen when you push, pull, rebase or clone, and blocks pushes that contain passwords or API keys. With Claude Code or Codex, he also walks you through pull requests and commits.
 
 <img src=".github/assets/demo.gif" alt="A real git push from IntelliJ's terminal of a commit called 'fix: small typo' with 3,214 lines. He runs into the corner of the screen, reads it, the camera zooms in and he shouts SMALL?!, then pushes it up into the cloud and collapses." width="900">
 
@@ -68,13 +68,30 @@ gitceps update                 # get the latest version
 
 `gitceps update` keeps him on or off, as he was. If Homebrew installed him, update with `brew upgrade gitceps` instead.
 
-To uninstall, run `gitceps off` first, then `rm -rf ~/.gitceps` or `brew uninstall gitceps`. Skipping `off` leaves git looking for hooks in a folder that no longer exists, and your repos' own hooks stop running.
+To uninstall, run `gitceps off` first (it also removes the tour skill), then `rm -rf ~/.gitceps` or `brew uninstall gitceps`. Skipping `off` leaves git looking for hooks in a folder that no longer exists, and your repos' own hooks stop running.
 
 ## Secret check
 
 Before every push, the hook scans the new lines for GitHub, Stripe, AWS, Slack, Anthropic and OpenAI keys, private keys, and quoted values like `password = "..."`. It also flags added `.env` files (templates such as `.env.example` are fine), `id_rsa`, `id_ed25519`, `credentials.json` and `*.pem`. On a match, the push stops.
 
 If the match is a fake test value, push anyway with `git push --no-verify`. The check catches common mistakes; use a dedicated scanner such as [gitleaks](https://github.com/gitleaks/gitleaks) for full coverage.
+
+## Tours of PRs and commits
+
+If you use Claude Code or Codex, ask it:
+
+```
+tour PR #18
+walk me through my last commit
+```
+
+Say "tour" or "walk me through" rather than "review": "review PR #18" starts your agent's own code review instead. In Claude Code, `/gitceps-tour PR 18` picks the tour by name.
+
+Your agent reviews the change and writes a tour: a few steps in the order the code runs, the lines worth reading in each, and what they do. Gitceps checks that every changed line is either in a step or listed as skipped with a reason, then opens the tour in a panel that floats beside your editor, with the steps in a sidebar. Push Bro stands next to the panel and reacts to each step in his speech bubble: he nods along on plain code, cheers when a check refuses what it should, and zooms in for a "NOPE" on a real bug. Nothing moves until you click Got It, or press Return once the panel has focus. For a serious review, untick Push Bro to keep only the code and the explanations.
+
+It works with GitHub, Bitbucket, or any repo you have cloned, and on a single commit or a range of them. Asking for the same PR or commit again reopens its tour without a new review, until it gets new commits. Gitceps itself uploads nothing: your agent reads your local clone as it does for any task, and the panel shows lines straight from git.
+
+`gitceps on` adds the skill to Claude Code and Codex when they're installed, and `gitceps off` removes it. For a second profile, set with `CLAUDE_CONFIG_DIR` or `CODEX_HOME`, run `gitceps on` once with it set, and `gitceps off` the same way. After `brew upgrade gitceps`, or after installing one of those apps, run `gitceps on` once more. A tour uses your agent's own subscription.
 
 ## Notes
 

@@ -265,6 +265,83 @@ const SCENES = {
   ],
 };
 
+// ---------- PR tour reactions ----------
+// Each step of a PR tour names one of these and gives the lines for his speech bubble, in order
+// (see skills/gitceps-tour/SKILL.md). A missing line leaves the bubble empty.
+
+const REVIEW = {
+  // Opens the tour.
+  intro: ([first = "", then = ""]) => [
+    { face: "proud", say: first, to: { hands: 160, hop: 6 }, ms: 350, ease: "out" },
+    { to: { hop: 0, hands: 58 }, ms: 300 },
+    { ms: 900 },
+    { face: "cool", say: then, ms: 1500 },
+  ],
+
+  // A plain step: he nods along.
+  nod: ([first = "", then = ""]) => [
+    { face: "calm", say: first, ms: 1500 },
+    { face: "cool", say: then, ms: 1500 },
+  ],
+
+  // Leans in to read, then approves.
+  inspect: ([reading = "", verdict = ""]) => [
+    { face: "sus", say: reading, to: { squat: 10, tilt: -6 }, ms: 400 },
+    { ms: 1100 },
+    { face: "proud", say: verdict, to: { squat: 0, tilt: 0, hands: 160 }, ms: 350, ease: "back" },
+    { to: { hands: 58 }, ms: 500 },
+  ],
+
+  // A check that holds: the code refuses what it should, and he cheers the refusal.
+  guard: ([reading = "", shout = "", refusal = "NOPE.", praise = ""]) => [
+    { face: "sus", say: reading, to: { squat: 8, tilt: -5 }, ms: 400 },
+    { ms: 1200 },
+    { to: { squat: 0, tilt: 0 }, ms: 200 },
+    ...closeUp(shout, 900),
+    { face: "strain", say: refusal, to: { quake: 3, jitter: 2, red: .6 }, ms: 300 },
+    { ms: 800 },
+    { to: { quake: 0, jitter: 0, red: 0 }, ms: 300 },
+    { face: "proud", say: praise, to: { hands: 170 }, ms: 300, ease: "back" },
+    { to: { hands: 58 }, ms: 600 },
+  ],
+
+  // A real problem, the loudest moment of a tour.
+  alarm: ([reading = "", shout = "", problem = ""]) => [
+    { face: "sus", say: reading, to: { squat: 8, tilt: -5 }, ms: 400 },
+    { ms: 1000 },
+    { to: { squat: 0, tilt: 0 }, ms: 200 },
+    ...closeUp(shout, 1000),
+    { face: "scream", sweat: true, say: problem, to: { red: .9, jitter: 2.5, quake: 3 }, ms: 400 },
+    { ms: 1000 },
+    { face: "strain", say: "NOPE.", to: { quake: 0, jitter: 0 }, ms: 300 },
+    { ms: 800 },
+    { face: "calm", sweat: false, say: "", to: { red: 0 }, ms: 300 },
+  ],
+
+  // Good work with one small thing worth a look.
+  nitpick: ([praise = "", doubt = "", advice = ""]) => [
+    { face: "proud", say: praise, ms: 1400 },
+    { face: "sus", say: doubt, to: { tilt: -5 }, ms: 300 },
+    { ms: 1300 },
+    { face: "proud", say: advice, to: { tilt: 0, hands: 190, hop: 8 }, ms: 350, ease: "out" },
+    { to: { hop: 0 }, ms: 250 },
+    { to: { hands: 58 }, ms: 500 },
+  ],
+
+  // The tour couldn't confirm this step, so he doesn't joke about it.
+  unsure: ([reading = ""]) => [
+    { face: "sus", say: reading, to: { tilt: -6 }, ms: 300 },
+    { ms: 1200 },
+    { face: "bored", say: "check this one yourself.", to: { tilt: 0 }, ms: 300 },
+    { ms: 1400 },
+  ],
+
+  // The end of the tour.
+  finale: ([last = ""]) => [
+    { face: "cool", say: last, ms: 1800 },
+  ],
+};
+
 function stepsFor(push) {
   return (SCENES[push.mode] || SCENES.normal)(push);
 }

@@ -3,8 +3,9 @@
 // scenes.js says what happens; this file knows how to draw it.
 // Plain scripts rather than ES modules, so overlay.html also works when opened straight from disk.
 
-// ---------- Layout, in SVG units (must match the viewBox in overlay.html) ----------
-const VIEW = { x: 120, y: 0, w: 600, h: 440 };
+// ---------- Layout, in SVG units ----------
+// The whole picture is the viewBox overlay.html starts with: wide for a push, closer for a PR tour.
+const VIEW = (([x, y, w, h]) => ({ x, y, w, h }))(document.getElementById("svg").getAttribute("viewBox").split(" ").map(Number));
 const FLOOR = 380;                                // y of the floor
 const SPOT = 400;                                 // x where he lifts
 const OFFSCREEN = 400;                            // x offset that puts him or the forklift past the right edge
@@ -55,6 +56,8 @@ const anim = {
   ropeSlack: 0,     // how much the rope bows sideways, for the tug
 };
 let holding = false;         // while true his hands stick to the bar
+let resting = false;         // standing between reactions in a tour: redrawn a few times a second, not 60
+let restTimer = null;        // the next redraw while resting
 let sweating = false;
 let puffedAt = -Infinity;    // when the last dust puff started
 let forkliftShown = false;   // once the forklift is on screen, its driver does the talking
@@ -105,6 +108,41 @@ async function play(push) {
   window.webkit?.messageHandlers?.done?.postMessage(true);   // tells the Mac app to quit
 }
 
+// Entry point for a tour, where the Mac app shows overlay.html?stage=tour beside the tour's panel. There's
+// no bar and no cloud. He waits off stage until the first cue(), then stays.
+function stand() {
+  buildBar({ mode: "tour", ins: 0, del: 0 });
+  els.cloud.setAttribute("hidden", "");
+  face("calm");
+  anim.opacity = 1;
+  resting = true;
+  requestAnimationFrame(render);
+}
+
+// The app calls cue({ react, bubbles }) for each step, naming one of REVIEW (scenes.js). A reaction that
+// arrives while he's busy waits, and only the newest waits, so clicking quickly through the steps never
+// leaves him acting out an old one.
+let cued = null, cueing = false, onStage = false;
+async function cue(reaction) {
+  cued = reaction;
+  if (cueing) return;
+  cueing = true;
+  resting = false;
+  if (restTimer) {   // draw the reaction from its first frame, not after the resting pause
+    clearTimeout(restTimer);
+    restTimer = null;
+    requestAnimationFrame(render);
+  }
+  while (cued) {
+    const steps = REVIEW[cued.react](cued.bubbles);
+    cued = null;
+    await run(onStage ? steps : [...runIn(), ...steps]);
+    onStage = true;
+  }
+  cueing = false;
+  resting = true;
+}
+
 // Plays steps one after another. The step format is described at the top of scenes.js.
 async function run(steps) {
   for (const step of steps) {
@@ -152,12 +190,11 @@ function face(name) {
 // Measures the text now; render() places and shows the bubble on the next frame.
 function say(text) {
   els.bubText.textContent = text;
+  els.bubText.setAttribute("font-size", 15);   // measured at full size; drawBubble shrinks it if it must
   els.bubble.setAttribute("opacity", 0);
   if (!text) { bubble = { w: 0, h: 0 }; return; }
   const box = els.bubText.getBBox();
   bubble = { w: box.width + 20, h: box.height + 12 };
-  els.bubRect.setAttribute("width", bubble.w);
-  els.bubRect.setAttribute("height", bubble.h);
 }
 
 function setCloud(text, color) {
@@ -181,7 +218,7 @@ function buildBar(push) {
 
   els.barbell.textContent = "";
   bar = { radius, plates: [], slots: count * 2, shaft: svg("path", { fill: "#8a8f98" }, els.barbell) };
-  if (push.mode === "clone") { anim.barOpacity = 0; els.barTag.textContent = ""; return; }
+  if (push.mode === "clone" || push.mode === "tour") { anim.barOpacity = 0; els.barTag.textContent = ""; return; }   // no bar
   for (const side of [-1, 1]) {
     for (let i = 0; i < count; i++) {
       const r = radius * (1 - i * .12), g = svg("g", {}, els.barbell);
@@ -347,32 +384,41 @@ function drawDust(now) {
   });
 }
 
-function drawBubble(pose) {
+// The bubble stays inside what the camera shows. In a close-up, a line too wide for it shrinks to fit.
+function drawBubble(pose, camera) {
   els.bubble.setAttribute("opacity", bubble.w ? 1 : 0);
   if (!bubble.w) return;
   const [tipX, tipY] = forkliftShown
     ? [SPOT + anim.forkliftX + 80, FLOOR - 178]   // just above the driver's hard hat
     : toPicture(pose, 14, -178 + anim.squat);
-  const left = clamp(tipX - 24, VIEW.x + 8, VIEW.x + VIEW.w - 8 - bubble.w);
-  const top = Math.max(VIEW.y + 6, tipY - 34 - bubble.h), bottom = top + bubble.h;
-  const foot = clamp(tipX + 6, left + 14, left + bubble.w - 30);
+  const fit = Math.min(1, (camera.w - 16) / bubble.w), w = bubble.w * fit, h = bubble.h * fit;
+  const left = clamp(tipX - 24, camera.x + 8, camera.x + camera.w - 8 - w);
+  const top = Math.max(camera.y + 6, tipY - 34 - h), bottom = top + h;
+  const foot = clamp(tipX + 6, left + 14, left + w - 30);
   els.bubRect.setAttribute("x", left);
   els.bubRect.setAttribute("y", top);
+  els.bubRect.setAttribute("width", w);
+  els.bubRect.setAttribute("height", h);
   els.bubTail.setAttribute("d", `M${foot} ${bottom - 1} L${tipX} ${tipY} L${foot + 22} ${bottom - 1}`);
-  els.bubText.setAttribute("x", left + 10);
-  els.bubText.setAttribute("y", bottom - 10);
+  els.bubText.setAttribute("font-size", 15 * fit);
+  els.bubText.setAttribute("x", left + 10 * fit);
+  els.bubText.setAttribute("y", bottom - 10 * fit);
 }
 
-// The camera eases the viewBox from the full picture to a close-up of his face.
-let lastZoom = 0;
-function drawCamera(pose) {
+// What the camera shows: the full picture, easing to a close-up of his face as anim.zoom goes to 1.
+function cameraBox(pose) {
   const [hx, hy] = toPicture(pose, 0, -150 + anim.squat);
   const w = lerp(VIEW.w, 230, anim.zoom), h = w * VIEW.h / VIEW.w;
   const cx = lerp(VIEW.x + VIEW.w / 2, hx + 20, anim.zoom), cy = lerp(VIEW.y + VIEW.h / 2, hy - 20, anim.zoom);
-  els.svg.setAttribute("viewBox", `${cx - w / 2} ${cy - h / 2} ${w} ${h}`);
+  return { x: cx - w / 2, y: cy - h / 2, w, h };
+}
+
+let lastZoom = 0;
+function drawCamera(camera) {
+  els.svg.setAttribute("viewBox", `${camera.x} ${camera.y} ${camera.w} ${camera.h}`);
   if (anim.zoom !== lastZoom) {   // keep the hand-drawn wobble the same size on screen at any zoom
-    els.boilMap.setAttribute("scale", 2.5 * w / VIEW.w);
-    els.boilNoise.setAttribute("baseFrequency", .035 * VIEW.w / w);
+    els.boilMap.setAttribute("scale", 2.5 * camera.w / VIEW.w);
+    els.boilNoise.setAttribute("baseFrequency", .035 * VIEW.w / camera.w);
     lastZoom = anim.zoom;
   }
 }
@@ -404,14 +450,16 @@ function render(now) {
   els.cloud.setAttribute("transform", `rotate(${anim.cloudLean}) scale(${1 + anim.cloudSquash},${1 - anim.cloudSquash})`);
   if (forkliftShown) drawForklift(now);
   if (ropeShown) drawRope();
-  drawBubble(pose);
+  const camera = cameraBox(pose);
+  drawBubble(pose, camera);
   els.stage.setAttribute("opacity", anim.opacity);
   els.stage.setAttribute("transform", `translate(${jolt(anim.quake)},${jolt(anim.quake)})`);
-  drawCamera(pose);
+  drawCamera(camera);
 
   if (now - lastBoil > 120) {   // new wobble about 8 times a second, like hand-drawn frames
     els.boilNoise.setAttribute("seed", Math.floor(now / 120) % 50);
     lastBoil = now;
   }
-  requestAnimationFrame(render);
+  if (resting) restTimer = setTimeout(() => { restTimer = null; requestAnimationFrame(render); }, 200);
+  else requestAnimationFrame(render);
 }

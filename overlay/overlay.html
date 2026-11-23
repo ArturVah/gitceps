@@ -158,12 +158,19 @@
   </g>
 </svg>
 
+<script>
+  // A tour shows him on his own and closer: overlay.html?stage=tour (stand() in engine.js).
+  const TOUR_STAGE = new URLSearchParams(location.search).get("stage") === "tour";
+  if (TOUR_STAGE) document.getElementById("svg").setAttribute("viewBox", "230 70 340 330");
+</script>
 <script src="engine.js"></script>
 <script src="scenes.js"></script>
 <script>
   "use strict";
-  // Outside the Mac app, play the push described in the URL, or a sample.
-  if (!window.webkit?.messageHandlers?.done) {
+  if (TOUR_STAGE) {
+    stand();
+  } else if (!window.webkit?.messageHandlers?.done) {
+    // Outside the Mac app, play the push described in the URL, or a sample.
     const query = Object.fromEntries(new URLSearchParams(location.search));
     play(query.mode ? query : { mode: "huge", ins: 3214, del: 1876, msg: "refactor: rewrite everything" });
   }

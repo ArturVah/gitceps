@@ -1,10 +1,11 @@
 #!/bin/bash
-# Turns Gitceps on or off, and switches single reactions on or off.
+# Turns Gitceps on or off, switches single reactions on or off, and shows tours of PRs and commits.
 # Usage:
 #   gitceps on | off | status                    for every git repo on this Mac
 #   gitceps list                                 each switch, and whether it's on where you are
 #   gitceps enable | disable <switch> [--here]   --here: only in the repo you're in
 #   gitceps update                               installs the latest version over this one
+#   gitceps tour FILE                            shows a tour of a PR or commit that a coding agent wrote
 set -euo pipefail
 GITCEPS_HOME="${GITCEPS_HOME:-$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)}"   # works through symlinks
 hooks="$GITCEPS_HOME/hooks"
@@ -15,7 +16,7 @@ current=$(git config --global --type=path core.hooksPath || true)   # --type=pat
 SWITCHES="push pull amend rebase clone all secrets"
 
 usage() {
-  echo "usage: gitceps on | off | status | list | update | enable <switch> [--here] | disable <switch> [--here]" >&2
+  echo "usage: gitceps on | off | status | list | update | tour <file> | enable <switch> [--here] | disable <switch> [--here]" >&2
   echo "switches: $SWITCHES" >&2
   exit 1
 }
@@ -23,8 +24,43 @@ usage() {
 # Paths are compared as folders, so ~/.gitceps/hooks/ and ~/.gitceps/hooks count as the same.
 is_ours() { [ -n "$1" ] && [ "$1" -ef "$hooks" ]; }
 
+# The tour skill goes into the skills folder of each coding agent on this Mac, as a link named gitceps-tour.
+# Tours don't need the hooks, so it comes and goes with on and off whatever happens to core.hooksPath.
+skill="$GITCEPS_HOME/skills/gitceps-tour"   # under Homebrew, GITCEPS_HOME is the formula's opt path, which upgrades keep
+agents=("$HOME/.claude" "$HOME/.codex")
+# Also a second profile the shell names, such as a work account in CLAUDE_CONFIG_DIR.
+for dir in "${CLAUDE_CONFIG_DIR:-}" "${CODEX_HOME:-}"; do
+  [ -z "$dir" ] || [ "$dir" -ef "$HOME/.claude" ] || [ "$dir" -ef "$HOME/.codex" ] || agents+=("$dir")
+done
+
+add_skill() {
+  local agent link
+  for agent in "${agents[@]}"; do
+    [ -d "$agent" ] || continue
+    link="$agent/skills/gitceps-tour"
+    if [ -e "$link" ] && [ ! -L "$link" ]; then
+      echo "$link already exists, so the tour skill wasn't added there." >&2
+      continue
+    fi
+    mkdir -p "$agent/skills"
+    ln -sfn "$skill" "$link"
+    echo "Tour skill added to $agent/skills."
+  done
+}
+
+remove_skill() {
+  local agent link
+  for agent in "${agents[@]}"; do
+    link="$agent/skills/gitceps-tour"
+    [ -L "$link" ] || continue
+    rm "$link"
+    echo "Tour skill removed from $agent/skills."
+  done
+}
+
 case "${1:-}" in
   on)
+    add_skill
     if [ -n "$current" ] && ! is_ours "$current"; then
       echo "Your global core.hooksPath is already $current, so Gitceps left it alone." >&2
       echo "To use him in one repo only, run this inside it: git config core.hooksPath \"$hooks\"" >&2
@@ -33,6 +69,7 @@ case "${1:-}" in
     git config --global core.hooksPath "$hooks"
     echo "Gitceps is on for every repo. Try a git push." ;;
   off)
+    remove_skill
     if is_ours "$current"; then
       git config --global --unset core.hooksPath
       echo "Gitceps is off."
@@ -73,6 +110,10 @@ case "${1:-}" in
     fi
     # exec: the installer replaces this very file.
     exec bash -c 'set -o pipefail; curl -fsSL https://raw.githubusercontent.com/ArturVah/gitceps/main/install.sh | bash' ;;
+  tour)
+    # The app prints what the tour is missing and fails, or says it's fine and opens it.
+    [ -f "${2:-}" ] || { echo "gitceps tour: there's no file at ${2:-(none given)}" >&2; exit 1; }
+    exec "$GITCEPS_HOME/app/gitceps-app" --tour "$2" ;;
   *)
     usage ;;
 esac
