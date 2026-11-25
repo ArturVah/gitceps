@@ -1,0 +1,61 @@
+{
+  "repo": "repo",
+  "base": "before",
+  "head": "after",
+  "number": 18,
+  "title": "Count items in the total",
+  "summary": "The total now multiplies each price by its count.",
+  "links": "https://example.com/blob/{head}/{path}#L{from}-L{to}",
+  "flag": "Check the count.",
+  "steps": [
+    {
+      "title": "The total",
+      "why": "Items without a price are skipped, and each price counts as many times as the item does.",
+      "bro": "Every plate counts.",
+      "react": "intro",
+      "bubbles": ["counts now"],
+      "note": { "kind": "good", "text": "Counts are whole numbers.", "source": "context.md:4" },
+      "ranges": [["src/app.js", 3, 6]]
+    },
+    {
+      "title": "Label and count",
+      "why": "Names lose their outer spaces, and count is exported.",
+      "bro": "Clean form.",
+      "react": "nod",
+      "bubbles": [],
+      "ranges": [["src/app.js", 10, 12, "nodel"], ["src/app.js", 14, 18]]
+    },
+    {
+      "title": "A renamed file",
+      "why": "The third line became a digit.",
+      "bro": "New name, same lift.",
+      "react": "inspect",
+      "bubbles": ["renamed"],
+      "note": { "kind": "warn", "text": "Nothing reads this file." },
+      "ranges": [["new name.txt", 3, 3], ["context.md", 3, 4]]
+    },
+    {
+      "title": "Windows endings and a link",
+      "why": "One line changed, one was added, and a file became a link.",
+      "bro": "Still standing.",
+      "react": "guard",
+      "bubbles": [],
+      "ranges": [["win.txt", 1, 4], ["link", 1, 1]]
+    },
+    {
+      "title": "A long file",
+      "why": "More rows than a card carries.",
+      "bro": "That's a lot of rows.",
+      "react": "unsure",
+      "bubbles": ["so many"],
+      "ranges": [["long.txt", 1, 320]]
+    }
+  ],
+  "skipped": [
+    { "reason": "The old label line", "ranges": [["src/app.js", 11, 11, "del"]] },
+    { "reason": "A deleted file", "ranges": [["gone.txt", 1, 1, "del"]] },
+    { "reason": "A line dropped from the end", "ranges": [["tail.txt", 3, 3, "del"]] },
+    { "reason": "Shown already", "ranges": [["src/app.js", 4, 5]] },
+    { "reason": "A new entry point", "ranges": [["added.rs", 1, 1], ["added.rs", 3, 4]] }
+  ]
+}

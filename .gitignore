@@ -9,3 +9,6 @@ demo/demo-app.git/
 # Editor files
 .idea/
 .DS_Store
+
+# Rust build output
+target/

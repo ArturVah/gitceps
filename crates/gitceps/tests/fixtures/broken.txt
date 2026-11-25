@@ -1,0 +1,28 @@
+A tour has 1 to 7 steps; this one has 8. Split a bigger change into several tours.
+step 1: src/app.js 0-3 isn't a range of lines
+step 1: src/app.js 5-4 isn't a range of lines
+step 1: no lines were removed from context.md
+step 1: no lines were removed at src/app.js 1-2; they were removed before lines 4, 11, 14
+step 1: logo.bin isn't a text file in head
+step 1: missing.txt isn't a text file in head
+step 1: win.txt has 4 lines, so 3-9 runs past its end
+step 1: title is empty
+step 1: why is empty
+step 1: react "dance" isn't one of intro, nod, inspect, guard, alarm, nitpick, unsure
+step 1: "this bubble is far too long to fit" is 34 characters; a bubble fits 28
+step 1: note kind "meh" isn't good or warn
+step 1: note source "context.md:99" isn't path:line of a line in head
+step 2: note source "nocolon" isn't path:line of a line in head
+skipped group 1: no lines were removed at gone.txt 2-2; they were removed before lines 1
+These changed lines aren't in the tour. Show them in a step, or list them under "skipped" with a reason. As ranges:
+  ["added.rs", 1, 1]
+  ["added.rs", 3, 4]
+  ["gone.txt", 1, 1, "del"]
+  ["link", 1, 1]
+  ["new name.txt", 3, 3]
+  ["src/app.js", 11, 11]
+  ["src/app.js", 14, 16]
+  ["src/app.js", 18, 18]
+  ["tail.txt", 3, 3, "del"]
+  ["win.txt", 2, 2]
+  ["win.txt", 4, 4]

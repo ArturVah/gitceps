@@ -1,0 +1,24 @@
+{
+  "repo": "repo",
+  "base": "before",
+  "head": "after",
+  "title": "A tour with every problem",
+  "summary": "Nothing here is right.",
+  "steps": [
+    {
+      "title": "",
+      "why": " ",
+      "bro": "b",
+      "react": "dance",
+      "bubbles": ["this bubble is far too long to fit"],
+      "note": { "kind": "meh", "text": "n", "source": "context.md:99" },
+      "ranges": [
+        ["src/app.js", 0, 3], ["src/app.js", 5, 4], ["context.md", 1, 1, "del"], ["src/app.js", 1, 2, "del"],
+        ["logo.bin", 1, 1], ["missing.txt", 1, 1], ["win.txt", 3, 9], ["src/app.js", 4, 5]
+      ]
+    },
+    { "title": "t", "why": "w", "bro": "b", "react": "nod", "bubbles": [], "note": { "kind": "good", "text": "n", "source": "nocolon" }, "ranges": [] },
+    { "title": "t", "why": "w", "bro": "b", "react": "nod", "bubbles": [], "ranges": [] }, { "title": "t", "why": "w", "bro": "b", "react": "nod", "bubbles": [], "ranges": [] }, { "title": "t", "why": "w", "bro": "b", "react": "nod", "bubbles": [], "ranges": [] }, { "title": "t", "why": "w", "bro": "b", "react": "nod", "bubbles": [], "ranges": [] }, { "title": "t", "why": "w", "bro": "b", "react": "nod", "bubbles": [], "ranges": [] }, { "title": "t", "why": "w", "bro": "b", "react": "nod", "bubbles": [], "ranges": [] }
+  ],
+  "skipped": [{ "reason": "r", "ranges": [["gone.txt", 2, 2, "del"], ["long.txt", 1, 320]] }]
+}
