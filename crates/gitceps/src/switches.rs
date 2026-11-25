@@ -126,10 +126,11 @@ fn global_hooks_path() -> String {
     ask(&["config", "--global", "--type=path", "core.hooksPath"])
 }
 
-/// Whether a hooks path is Gitceps': this version's folder, or the folder of a version 0.5 installed by
-/// Homebrew or run from a checkout, which was always gitceps/hooks.
+/// Whether a hooks path is Gitceps': this version's folder, or the folder of a version 0.5 that was run from
+/// a checkout (gitceps/hooks) or installed by Homebrew (gitceps/libexec/hooks).
 fn is_gitceps(path: &str, hooks: &Path) -> bool {
-    same_folder(path, hooks) || Path::new(path).ends_with(Path::new("gitceps").join("hooks"))
+    let old = ["gitceps/hooks", "gitceps/libexec/hooks"];
+    same_folder(path, hooks) || old.iter().any(|old| Path::new(path).ends_with(old))
 }
 
 /// Paths are compared as the folders they lead to, so a link or a trailing slash makes no difference.

@@ -666,7 +666,7 @@ fn turning_on_replaces_what_version_0_5_left() {
     assert_eq!(sandbox.played("mine", &["push"]), "normal");
 
     // Under Homebrew, version 0.5 was on through its own folder, which an upgrade removes.
-    let homebrew = sandbox.path().join("homebrew/opt/gitceps/hooks");
+    let homebrew = sandbox.path().join("homebrew/opt/gitceps/libexec/hooks");
     sandbox.git(
         ".",
         &["config", "--global", "core.hooksPath", &homebrew.to_string_lossy()],
