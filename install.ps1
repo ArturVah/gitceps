@@ -39,7 +39,7 @@
 
     $path = [Environment]::GetEnvironmentVariable('Path', 'User')
     if (($path -split ';') -notcontains $bin) {
-        [Environment]::SetEnvironmentVariable('Path', "$path;$bin".TrimStart(';'), 'User')
+        [Environment]::SetEnvironmentVariable('Path', ("$path".TrimEnd(';') + ";$bin").TrimStart(';'), 'User')
         Write-Host "Added $bin to your PATH. Open a new terminal to use the gitceps command."
     }
 
