@@ -93,7 +93,7 @@ const jolt = amount => (Math.random() - .5) * 2 * amount;
 const shorten = (text, max = 28) => text.length > max ? text.slice(0, max - 1) + "…" : text;
 
 // ---------- Playing a scene ----------
-// Entry point. The Mac app calls play({ mode, ins, del, msg, secret, remote }) once the page has loaded.
+// Entry point. The window calls play({ mode, ins, del, msg, secret, remote }) once the page has loaded.
 async function play(push) {
   push = { mode: "normal", msg: "", secret: "", from: "", ...push, ins: Number(push.ins) || 0, del: Number(push.del) || 0, commits: Number(push.commits) || 0 };
   if (typeof push.msgs === "string") push.msgs = push.msgs.split("\n").filter(Boolean);
@@ -105,10 +105,10 @@ async function play(push) {
   tween({ opacity: 1 }, 350);   // fades in while the first steps play
   await run(stepsFor(push));
   await tween({ opacity: 0 }, 350);
-  window.webkit?.messageHandlers?.done?.postMessage(true);   // tells the Mac app to quit
+  window.ipc?.postMessage(JSON.stringify({ name: "done" }));   // tells the window to close
 }
 
-// Entry point for a tour, where the Mac app shows overlay.html?stage=tour beside the tour's panel. There's
+// Entry point for a tour, where the window shows overlay.html?stage=tour beside the tour's panel. There's
 // no bar and no cloud. He waits off stage until the first cue(), then stays.
 function stand() {
   buildBar({ mode: "tour", ins: 0, del: 0 });

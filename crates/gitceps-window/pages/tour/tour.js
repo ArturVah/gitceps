@@ -1,7 +1,7 @@
-// Runs a tour in the Mac app's panel (app/TourViewer.swift), which calls start(json) with the tour
-// app/TourCheck.swift checked, and opens clicked links in the default browser. Push Bro lives in a window of
-// his own beside the panel; the app passes him the reactions asked for here. To try the page in a browser,
-// call start() with what `GITCEPS_DRY=1 app/gitceps-app --tour FILE` prints; it works there without him.
+// Runs a tour in the tour window (src/tour.rs), which calls start(json) with the tour `gitceps tour` checked,
+// and opens clicked links in the default browser. Push Bro lives in a window of his own beside the panel; the
+// window passes him the reactions asked for here. To try the page in a browser, call start() with what
+// `GITCEPS_DRY=1 gitceps tour FILE` prints; it works there without him.
 "use strict";
 const $ = id => document.getElementById(id);
 const make = (tag, className, text) => {
@@ -10,7 +10,10 @@ const make = (tag, className, text) => {
   if (text != null) e.textContent = text;
   return e;
 };
-const app = window.webkit?.messageHandlers;   // absent in a browser
+if (new URLSearchParams(location.search).has("plain")) document.documentElement.classList.add("plain");
+
+// Sends the window a message. In a browser there is no window to tell.
+const tell = (name, body) => window.ipc?.postMessage(JSON.stringify({ name, body }));
 const plural = (n, word) => `${n.toLocaleString("en-US")} ${word}${n === 1 ? "" : "s"}`;
 const FOLD = 30;   // longer code cards show this many lines and a button for the rest
 
@@ -18,7 +21,7 @@ let tour, current = -1, started = false, finished = false;
 let read;   // per step: has the reviewer clicked Got It on it
 
 function react(name, bubbles) {
-  if ($("show-bro").checked) app?.react.postMessage({ react: name, bubbles });
+  if ($("show-bro").checked) tell("react", { react: name, bubbles });
 }
 
 // ---------- Drawing ----------
@@ -166,7 +169,7 @@ function finish() {
 
 function go() {
   if (finished) {
-    app?.done.postMessage(true);   // Close
+    tell("done");   // Close
   } else if (started) {
     read[current] = true;
     progress();
@@ -183,7 +186,7 @@ function back() {
 }
 
 // ---------- Start ----------
-// Called by the Mac app with the checked tour as JSON.
+// Called by the window with the checked tour as JSON.
 function start(json) {
   tour = JSON.parse(json);
   read = tour.steps.map(() => false);
@@ -211,13 +214,15 @@ $("go").addEventListener("click", go);
 $("back").addEventListener("click", back);
 $("show-bro").addEventListener("change", () => {
   const shown = $("show-bro").checked;
-  app?.bro.postMessage(shown);
+  tell("bro", shown);
   $("why").querySelector(".said")?.toggleAttribute("hidden", !shown);
   if (shown && started && !finished) react(tour.steps[current].react, tour.steps[current].bubbles);   // he missed this step while he was away
 });
-// Return is the default button, unless a control has focus, where it presses that. Esc closes the tour.
+// Return is the default button, unless a control has focus, where it presses that.
 addEventListener("keydown", event => {
-  if (event.key === "Escape") app?.done.postMessage(true);
+  // Esc closes the tour, and so do the system's own shortcuts for closing a window and quitting.
+  const closes = event.key === "Escape" || ((event.metaKey || event.ctrlKey) && ["w", "q"].includes(event.key.toLowerCase()));
+  if (closes) tell("done");
   else if (event.key === "Enter" && !event.target.closest("button, a, input")) {
     event.preventDefault();
     go();

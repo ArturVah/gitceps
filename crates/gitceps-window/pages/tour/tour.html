@@ -3,20 +3,24 @@
 <head>
 <meta charset="utf-8">
 <title>Gitceps tour</title>
-<!-- A tour of a PR or a commit, shown by the Mac app in a panel (app/TourViewer.swift). tour.js runs it. -->
+<!-- A tour of a PR or a commit, shown in the tour window (src/tour.rs). tour.js runs it. -->
 <style>
-  /* The sidebar stays see-through, so the panel's native sidebar material shows. Everything else is painted. */
+  /* On a Mac the sidebar stays see-through, so the panel's native sidebar material shows. Everything else is
+     painted, and so is the sidebar where the window asks for it with tour.html?plain. */
   :root {
     color-scheme: light dark;
-    --content: #ffffff; --line: rgba(0, 0, 0, .1); --text: #1d1d1f; --secondary: rgba(0, 0, 0, .55); --tertiary: rgba(0, 0, 0, .3);
-    --accent: AccentColor; --on-accent: #ffffff; --button: #ffffff; --button-edge: rgba(0, 0, 0, .14);
+    --content: #ffffff; --sidebar: #f1f1f3; --line: rgba(0, 0, 0, .1); --text: #1d1d1f; --secondary: rgba(0, 0, 0, .55); --tertiary: rgba(0, 0, 0, .3);
+    --accent: #0a6cff; --on-accent: #ffffff; --button: #ffffff; --button-edge: rgba(0, 0, 0, .14);
     --ok: #1f883d; --added: rgba(31, 136, 61, .1); --removed: rgba(207, 34, 46, .08); --removed-text: #a40e26;
     --header: rgba(0, 0, 0, .03); --warn-bg: rgba(212, 167, 44, .14); --good-bg: rgba(31, 136, 61, .09);
-    --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  @supports (color: AccentColor) {
+    :root { --accent: AccentColor; }
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --content: #1e1e1e; --line: rgba(255, 255, 255, .1); --text: #f5f5f7; --secondary: rgba(255, 255, 255, .55); --tertiary: rgba(255, 255, 255, .3);
+      --content: #1e1e1e; --sidebar: #2a2a2c; --line: rgba(255, 255, 255, .1); --text: #f5f5f7; --secondary: rgba(255, 255, 255, .55); --tertiary: rgba(255, 255, 255, .3);
       --button: rgba(255, 255, 255, .17); --button-edge: rgba(255, 255, 255, .06);
       --ok: #3fb950; --added: rgba(63, 185, 80, .13); --removed: rgba(248, 81, 73, .13); --removed-text: #ff9b93;
       --header: rgba(255, 255, 255, .04); --warn-bg: rgba(210, 153, 34, .16); --good-bg: rgba(63, 185, 80, .13);
@@ -24,12 +28,13 @@
   }
   * { box-sizing: border-box; }
   html, body { height: 100%; margin: 0; background: transparent; }
-  body { display: grid; grid-template-columns: 220px minmax(0, 1fr); font: 13px/1.45 -apple-system, BlinkMacSystemFont, sans-serif;
+  body { display: grid; grid-template-columns: 220px minmax(0, 1fr); font: 13px/1.45 -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", sans-serif;
          color: var(--text); -webkit-user-select: none; cursor: default; }
   [hidden] { display: none !important; }
 
   /* Sidebar */
   .sidebar { display: flex; flex-direction: column; gap: 4px; padding: 12px 10px; min-height: 0; }
+  .plain .sidebar { background: var(--sidebar); }
   .section { padding: 0 8px 4px; font-size: 11px; font-weight: 600; color: var(--secondary); display: flex; justify-content: space-between; }
   .steps { flex: 1; overflow: auto; display: flex; flex-direction: column; gap: 1px; }
   .step { display: flex; gap: 7px; align-items: baseline; width: 100%; padding: 4px 8px; border: 0; border-radius: 6px;

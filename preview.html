@@ -80,7 +80,7 @@ function print(text, cls) {
 async function run(name) {
   const { push, cmd = "git push", out: lines = pushed } = PUSHES[name];
   buttons.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.push === name));
-  bro.src = "overlay/overlay.html?" + new URLSearchParams({ mode: name, remote: "app", ...push });
+  bro.src = "crates/gitceps-window/pages/overlay/overlay.html?" + new URLSearchParams({ mode: name, remote: "app", ...push });
   const id = ++current;
   out.textContent = "";
   if (cmd === "git push" || cmd === "git push --force") print(`$ git commit -m "${push.msg}"`, "dim");

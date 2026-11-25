@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/gitceps"]
+members = ["crates/gitceps", "crates/gitceps-window"]
 resolver = "3"
 
 [workspace.package]

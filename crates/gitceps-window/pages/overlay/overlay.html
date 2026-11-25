@@ -5,7 +5,7 @@
 <title>Gitceps</title>
 <!--
   Gitceps' drawing. engine.js moves it, scenes.js decides what he does.
-  The Mac app calls play(push) once this page loads. Opened in a browser, the page plays
+  The window calls play(push) once this page loads. Opened in a browser, the page plays
   the push described in its URL, e.g. overlay.html?mode=huge&ins=3214&del=1876&msg=refactor
 -->
 <style>
@@ -169,8 +169,8 @@
   "use strict";
   if (TOUR_STAGE) {
     stand();
-  } else if (!window.webkit?.messageHandlers?.done) {
-    // Outside the Mac app, play the push described in the URL, or a sample.
+  } else if (!window.ipc) {
+    // In a browser, play the push described in the URL, or a sample.
     const query = Object.fromEntries(new URLSearchParams(location.search));
     play(query.mode ? query : { mode: "huge", ins: 3214, del: 1876, msg: "refactor: rewrite everything" });
   }
