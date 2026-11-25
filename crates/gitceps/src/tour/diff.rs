@@ -87,7 +87,8 @@ impl FileDiff {
     }
 }
 
-static HUNK: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@").unwrap());
+static HUNK: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@").expect("the pattern is valid"));
 
 /// Reads `git diff -U0 -M` with the a/ and b/ prefixes. Paths git quotes, those with a quote, a backslash or
 /// a control character in them, aren't read.
