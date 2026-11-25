@@ -30,7 +30,9 @@ Or with Homebrew:
 brew install ArturVah/tap/gitceps && gitceps on
 ```
 
-All of them turn Gitceps on for every repo. Each repo's own hooks keep running. Repos that set their own hooks folder, such as those using Husky, skip him.
+All of them turn Gitceps on for every repo, by pointing git's global `core.hooksPath` at the `.gitceps/hooks` folder in your home folder. That's the only git setting he changes. Each repo's own hooks keep running. Repos that set their own hooks folder, such as those using Husky, skip him.
+
+The installers check each download against the checksums published with the release. Every release file also carries a build attestation, which `gh attestation verify <file> --repo ArturVah/gitceps` checks.
 
 Linux and Windows are in beta:
 
@@ -112,6 +114,10 @@ It works with GitHub, Bitbucket, or any repo you have cloned, and on a single co
 - The hooks add about 30 ms to a commit and about 60 ms to a push, most of it the secret scan. His window uses about 70 MB while he's on screen and quits when he leaves.
 - Logs go to `~/Library/Logs/gitceps.log` on a Mac, and to `gitceps.log` in the `.gitceps` folder elsewhere.
 
+## Contributing
+
+[CONTRIBUTING.md](CONTRIBUTING.md) shows how the pieces fit together, how to change a reaction or add one, and how to build and test. To report a security problem, see [SECURITY.md](.github/SECURITY.md).
+
 ## License
 
-MIT
+[MIT](LICENSE)
