@@ -1,10 +1,10 @@
 # Private notes and research. Never published.
 private/
 
-# Build output and the demo's sandbox repos
-app/gitceps-app
+# The demo's sandbox
 demo/repo/
 demo/demo-app.git/
+demo/home/
 
 # Editor files
 .idea/

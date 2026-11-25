@@ -4,7 +4,7 @@
 
 **A gym bro who pushes your code to the cloud every time you `git push`**
 
-A small macOS app and git hooks. He pops up in the corner of your screen when you push, pull, rebase or clone, and blocks pushes that contain passwords or API keys. With Claude Code or Codex, he also walks you through pull requests and commits.
+A small app and git hooks for macOS, Linux and Windows. He pops up in the corner of your screen when you push, pull, rebase or clone, and blocks pushes that contain passwords or API keys. With Claude Code or Codex, he also walks you through pull requests and commits.
 
 <img src=".github/assets/demo.gif" alt="A real git push from IntelliJ's terminal of a commit called 'fix: small typo' with 3,214 lines. He runs into the corner of the screen, reads it, the camera zooms in and he shouts SMALL?!, then pushes it up into the cloud and collapses." width="900">
 
@@ -12,19 +12,31 @@ A small macOS app and git hooks. He pops up in the corner of your screen when yo
 
 ## Install
 
-macOS only. Requires Apple's Command Line Tools (`xcode-select --install`).
+macOS and Linux:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/ArturVah/gitceps/main/install.sh | bash
 ```
 
-Or with Homebrew:
+Windows, in PowerShell:
+
+```powershell
+irm https://raw.githubusercontent.com/ArturVah/gitceps/main/install.ps1 | iex
+```
+
+Or with Homebrew, or with Rust's Cargo:
 
 ```sh
 brew install ArturVah/tap/gitceps && gitceps on
+cargo install gitceps gitceps-window && gitceps on
 ```
 
-Both build the app on your Mac and turn Gitceps on for every repo. Each repo's own hooks keep running. Repos that set their own hooks folder, such as those using Husky, skip him.
+All of them turn Gitceps on for every repo. Each repo's own hooks keep running. Repos that set their own hooks folder, such as those using Husky, skip him.
+
+Linux and Windows are in beta:
+
+- **Linux** needs the WebKitGTK 4.1 library for his windows (`libwebkit2gtk-4.1-0` on Debian and Ubuntu, `webkit2gtk4.1` on Fedora), and X11 or XWayland to place them. On Wayland alone the push reactions are skipped and a tour opens without Push Bro. Without the library the secret check still runs.
+- **Windows** needs [Git for Windows](https://gitforwindows.org) and WebView2, which Windows 11 and an up-to-date Windows 10 already have. He doesn't appear above a game or video in exclusive full screen.
 
 ## Quickstart
 
@@ -64,11 +76,11 @@ gitceps off                    # turn Gitceps off completely
 gitceps update                 # get the latest version
 ```
 
-`enable` turns a switch back on, and `on` brings him back. `all` mutes the animation but keeps the secret check. Settings are stored in git config under `[gitceps]`, and `--here` writes to the current repo's `.git/config`. With the curl install, the command is `~/.gitceps/bin/gitceps`.
+`enable` turns a switch back on, and `on` brings him back. `all` mutes the animation but keeps the secret check. Settings are stored in git config under `[gitceps]`, and `--here` writes to the current repo's `.git/config`. With the curl install on macOS and Linux, the command is `~/.gitceps/bin/gitceps`.
 
-`gitceps update` keeps him on or off, as he was. If Homebrew installed him, update with `brew upgrade gitceps` instead.
+`gitceps update` keeps him on or off, as he was. If Homebrew or Cargo installed him, update with `brew upgrade gitceps` or `cargo install gitceps gitceps-window` instead, then run `gitceps on` once more.
 
-To uninstall, run `gitceps off` first (it also removes the tour skill), then `rm -rf ~/.gitceps` or `brew uninstall gitceps`. Skipping `off` leaves git looking for hooks in a folder that no longer exists, and your repos' own hooks stop running.
+To uninstall, run `gitceps off` first (it also removes the tour skill), then delete the `.gitceps` folder in your home folder, and run `brew uninstall gitceps` or `cargo uninstall gitceps gitceps-window` if that's how he came. Skipping `off` leaves git pointed at his hooks folder: your repos' own hooks keep running from there until the folder is deleted, and stop once it is.
 
 ## Secret check
 
@@ -91,16 +103,15 @@ Your agent reviews the change and writes a tour: a few steps in the order the co
 
 It works with GitHub, Bitbucket, or any repo you have cloned, and on a single commit or a range of them. Asking for the same PR or commit again reopens its tour without a new review, until it gets new commits. Gitceps itself uploads nothing: your agent reads your local clone as it does for any task, and the panel shows lines straight from git.
 
-`gitceps on` adds the skill to Claude Code and Codex when they're installed, and `gitceps off` removes it. For a second profile, set with `CLAUDE_CONFIG_DIR` or `CODEX_HOME`, run `gitceps on` once with it set, and `gitceps off` the same way. After `brew upgrade gitceps`, or after installing one of those apps, run `gitceps on` once more. A tour uses your agent's own subscription.
+`gitceps on` adds the skill to Claude Code and Codex when they're installed, and `gitceps off` removes it. For a second profile, set with `CLAUDE_CONFIG_DIR` or `CODEX_HOME`, run `gitceps on` once with it set, and `gitceps off` the same way. After installing one of those apps, run `gitceps on` once more. A tour uses your agent's own subscription.
 
 ## Notes
 
 - There's no sound yet. He grunts in text only.
-- Homebrew won't build from source while an installed Xcode is older than your macOS. Update Xcode, or use the curl installer.
 - To watch every reaction without installing anything, clone the repo and open `preview.html`.
 - With Gitceps on, a repo's own `push-to-checkout` and `proc-receive` hooks don't run. Only repos that receive pushes and run custom code on them use those.
-- The hooks add about 10 ms to a commit or branch switch, and about 90 ms to a push because of the secret scan. The app uses about 60 MB while he's on screen and quits when he leaves.
-- Logs go to `~/Library/Logs/gitceps.log`.
+- The hooks add about 30 ms to a commit and about 60 ms to a push, most of it the secret scan. His window uses about 70 MB while he's on screen and quits when he leaves.
+- Logs go to `~/Library/Logs/gitceps.log` on a Mac, and to `gitceps.log` in the `.gitceps` folder elsewhere.
 
 ## License
 

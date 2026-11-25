@@ -15,7 +15,7 @@ use super::file::{self, LineRange, Part, TourFile};
 use super::page::{Card, FileStat, Group, Line, Note, Page, Step, blank, dedented};
 use crate::git::{files, git};
 
-/// The reactions a step may name: REVIEW in overlay/scenes.js, without "finale", which the page plays itself.
+/// The reactions a step may name: REVIEW in gitceps-window's scenes.js, without "finale", which the page plays itself.
 const REACTIONS: [&str; 7] = ["intro", "nod", "inspect", "guard", "alarm", "nitpick", "unsure"];
 const BUBBLE_LIMIT: usize = 28; // characters that fit his speech bubble
 const STEP_LIMIT: usize = 7;

@@ -1,5 +1,5 @@
-//! `gitceps tour`, run on a small repo built here. What fixtures/ expects was recorded from the Swift app
-//! this code was ported from, on the same repo.
+//! `gitceps tour`, run on a small repo built here. What fixtures/ expects was recorded on the same repo, and
+//! the check must keep producing it.
 use std::path::Path;
 use std::process::{Command, Output, Stdio};
 
