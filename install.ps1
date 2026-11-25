@@ -1,9 +1,8 @@
 # Installs Gitceps into ~\.gitceps and turns it on for every git repo:
 #   irm https://raw.githubusercontent.com/ArturVah/gitceps/main/install.ps1 | iex
 # Run again (or `gitceps update`) to update. An update leaves him on or off, as he was.
-$ErrorActionPreference = 'Stop'
-
 & {
+    $ErrorActionPreference = 'Stop'
     $bin = Join-Path $HOME '.gitceps\bin'
     $gitceps = Join-Path $bin 'gitceps.exe'
     # Where the release files are. Another address serves a mirror or a test.
@@ -46,7 +45,8 @@ $ErrorActionPreference = 'Stop'
 
     $version = (& $gitceps --version) -replace '^gitceps', 'Gitceps'
     if ($fresh -or $wasOn) {
-        & $gitceps on | Out-Null
+        & $gitceps on | Out-Null   # says why itself when it can't
+        if ($LASTEXITCODE -ne 0) { throw "$version is installed, but he isn't on." }
         Write-Host "$version is installed and on for every repo. Try a git push."
     } else {
         Write-Host "$version is installed. He's off. To turn him on: gitceps on"

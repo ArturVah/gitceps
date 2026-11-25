@@ -80,11 +80,14 @@ target/release/gitceps tour demo/tour.json # checks it, then opens it
 
 ## Release
 
-1. Bump `version` in `Cargo.toml`, run `cargo build` so `Cargo.lock` follows, and commit.
-2. Tag and push: `git tag v0.6.0 && git push origin main v0.6.0`.
-3. Publish the release: `gh release create v0.6.0 --title "Gitceps 0.6.0" --notes "..."`. The Release workflow then builds both programs for every system and attaches the archives with their checksums. Wait for it: `gh run watch`. Until it finishes, the installers have nothing to download, so publish at a quiet moment or mark the release as a pre-release first and unmark it once the files are there.
-4. Publish the crates: `cargo publish -p gitceps && cargo publish -p gitceps-window`.
-5. In [ArturVah/homebrew-tap](https://github.com/ArturVah/homebrew-tap), update `version` and the `sha256` of each archive in `Formula/gitceps.rb` from the release's `SHA256SUMS`.
+1. Bump `version` in `Cargo.toml`, run `cargo build` so `Cargo.lock` follows, and commit. Don't push `main` yet when `install.sh` or `install.ps1` changed: the install commands run the copy on `main`, and it must not ask for files a release doesn't have yet.
+2. Tag and push the tag: `git tag v0.6.0 && git push origin v0.6.0`.
+3. Publish the release: `gh release create v0.6.0 --title "Gitceps 0.6.0" --notes "..."`. The Release workflow then builds both programs for every system and attaches the archives with their checksums. Wait for it: `gh run watch`.
+4. Push `main`.
+5. Publish the crates: `cargo publish -p gitceps && cargo publish -p gitceps-window`.
+6. In [ArturVah/homebrew-tap](https://github.com/ArturVah/homebrew-tap), update `version` and the `sha256` of each archive in `Formula/gitceps.rb` from the release's `SHA256SUMS`.
+
+To try the archives before anyone gets them, publish with `--prerelease`, which leaves `releases/latest` where it was, and install from that release: `GITCEPS_RELEASE=https://github.com/ArturVah/gitceps/releases/download/v0.6.0 bash install.sh`. Then unmark it: `gh release edit v0.6.0 --prerelease=false --latest`.
 
 The archives carry no version in their names, so `install.sh` and `install.ps1` always fetch `releases/latest/download/…` and never need editing for a release. GitHub counts downloads of attached files, so this shows installs per release (reinstalls and upgrades included):
 

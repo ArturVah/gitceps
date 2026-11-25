@@ -11,7 +11,8 @@ cargo build --release --manifest-path "$root/Cargo.toml"
 home="$root/demo/home"
 rm -rf "$root/demo/repo" "$root/demo/demo-app.git" "$home"
 mkdir -p "$home"
-env -u CLAUDE_CONFIG_DIR -u CODEX_HOME HOME="$home" USERPROFILE="$home" "$root/target/release/gitceps" on >/dev/null
+env -u CLAUDE_CONFIG_DIR -u CODEX_HOME -u XDG_CONFIG_HOME HOME="$home" USERPROFILE="$home" \
+  GIT_CONFIG_GLOBAL="$home/.gitconfig" "$root/target/release/gitceps" on >/dev/null
 
 git init -q --bare -b main "$root/demo/demo-app.git"
 git init -q -b main "$root/demo/repo"

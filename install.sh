@@ -6,7 +6,8 @@
 set -euo pipefail
 
 main() {
-  local dest="$HOME/.gitceps" asset
+  local asset
+  dest="$HOME/.gitceps"   # not local, nor is tmp below: the EXIT trap runs after main() has returned
   # Where the release files are. Another address, or a folder as file:///path, serves a mirror or a test.
   local from="${GITCEPS_RELEASE:-https://github.com/ArturVah/gitceps/releases/latest/download}"
 
@@ -29,8 +30,10 @@ main() {
   fi
 
   echo "Downloading Gitceps..."
-  tmp=$(mktemp -d)   # not local: the EXIT trap runs after main() has returned
-  trap 'rm -rf "$tmp"' EXIT
+  # Inside the Gitceps folder, so putting a program in place is one rename and never a copy between disks.
+  mkdir -p "$dest/bin"
+  tmp=$(mktemp -d "$dest/.new.XXXXXX")
+  trap 'rm -rf "$tmp"; rmdir "$dest/bin" "$dest" 2>/dev/null || true' EXIT   # the folders stay unless still empty
   curl -fsSL "$from/$asset" -o "$tmp/$asset"
   curl -fsSL "$from/SHA256SUMS" -o "$tmp/SHA256SUMS"
   local sum
@@ -40,26 +43,35 @@ main() {
   fi
   mkdir "$tmp/new"
   tar -xzf "$tmp/$asset" -C "$tmp/new"
+  if ! "$tmp/new/gitceps" --version >/dev/null 2>&1; then
+    echo "This build of Gitceps doesn't run on this system, so nothing was installed." >&2
+    echo "With Rust installed, build it: cargo install gitceps gitceps-window" >&2
+    exit 1
+  fi
 
   # Each program is put in place with one rename, so a hook that runs meanwhile finds the old one or the new.
-  # What version 0.5 kept here goes: its hooks are rewritten by `gitceps on` below.
-  mkdir -p "$dest/bin"
   local program
   for program in gitceps gitceps-window; do
     mv -f "$tmp/new/$program" "$dest/bin/$program"
   done
-  rm -rf "$dest/app" "$dest/overlay" "$dest/tour" "$dest/skills" "$dest/VERSION"
+  local from_0_5=false
+  [ ! -f "$dest/hooks/lib.sh" ] || from_0_5=true
+  rm -rf "$dest/app" "$dest/overlay" "$dest/tour" "$dest/skills" "$dest/VERSION"   # what version 0.5 kept here
 
   local version; version=$("$dest/bin/gitceps" --version)
-  if [ "$(uname -s)" = Linux ] && ! ldconfig -p 2>/dev/null | grep -q 'libwebkit2gtk-4\.1'; then
-    echo "His windows need the WebKitGTK 4.1 library (libwebkit2gtk-4.1-0 on Debian and Ubuntu, webkit2gtk4.1 on Fedora)."
-    echo "Until it's installed the secret check still works, without the animations."
-  fi
+  # Without its library the window program can't start, and the system's loader says so.
+  case "$("$dest/bin/gitceps-window" 2>&1 || true)" in
+    *"shared libraries"*)
+      echo "His windows need the WebKitGTK 4.1 library (libwebkit2gtk-4.1-0 on Debian and Ubuntu, webkit2gtk4.1 on Fedora)."
+      echo "Until it's installed the secret check still works, without the animations." ;;
+  esac
   if $fresh || $was_on; then
     "$dest/bin/gitceps" on >/dev/null
     echo "${version/gitceps/Gitceps} is installed and on for every repo. Try a git push."
     $fresh && echo "To turn him off: ~/.gitceps/bin/gitceps off"
   else
+    # He stays off, but a repo may point at version 0.5's hooks by itself, and `on` is what writes the new ones.
+    if $from_0_5 && "$dest/bin/gitceps" on >/dev/null 2>&1; then "$dest/bin/gitceps" off >/dev/null; fi
     echo "${version/gitceps/Gitceps} is installed. He's off. To turn him on: ~/.gitceps/bin/gitceps on"
   fi
   return 0

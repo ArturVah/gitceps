@@ -109,7 +109,7 @@ It works with GitHub, Bitbucket, or any repo you have cloned, and on a single co
 
 - There's no sound yet. He grunts in text only.
 - To watch every reaction without installing anything, clone the repo and open `preview.html`.
-- With Gitceps on, a repo's own `push-to-checkout` and `proc-receive` hooks don't run. Only repos that receive pushes and run custom code on them use those.
+- With Gitceps on, four of a repo's own hooks don't run: `push-to-checkout` and `proc-receive`, which only repos that receive pushes use, and `reference-transaction` and `post-index-change`, which git calls too often to pass along.
 - The hooks add about 30 ms to a commit and about 60 ms to a push, most of it the secret scan. His window uses about 70 MB while he's on screen and quits when he leaves.
 - Logs go to `~/Library/Logs/gitceps.log` on a Mac, and to `gitceps.log` in the `.gitceps` folder elsewhere.
 
