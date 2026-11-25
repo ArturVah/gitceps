@@ -86,7 +86,7 @@ target/release/gitceps tour demo/tour.json # checks it, then opens it
 2. Tag and push the tag: `git tag v0.6.0 && git push origin v0.6.0`.
 3. Publish the release: `gh release create v0.6.0 --title "Gitceps 0.6.0" --notes "..."`. The Release workflow then builds both programs for every system and attaches the archives with their checksums. Wait for it: `gh run watch`.
 4. Push `main`.
-5. In [ArturVah/homebrew-tap](https://github.com/ArturVah/homebrew-tap), update `version` and the `sha256` of each archive in `Formula/gitceps.rb` from the release's `SHA256SUMS`.
+5. In [ArturVah/homebrew-tap](https://github.com/ArturVah/homebrew-tap), update the `url` and the `sha256` of the macOS archive in `Formula/gitceps.rb` from the release's `SHA256SUMS`.
 
 To try the archives before anyone gets them, publish with `--prerelease`, which leaves `releases/latest` where it was, and install from that release: `GITCEPS_RELEASE=https://github.com/ArturVah/gitceps/releases/download/v0.6.0 bash install.sh`. Then unmark it: `gh release edit v0.6.0 --prerelease=false --latest`.
 

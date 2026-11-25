@@ -24,7 +24,7 @@ Windows, in PowerShell:
 irm https://raw.githubusercontent.com/ArturVah/gitceps/main/install.ps1 | iex
 ```
 
-Or with Homebrew:
+Or with Homebrew, on macOS:
 
 ```sh
 brew install ArturVah/tap/gitceps && gitceps on
