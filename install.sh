@@ -17,7 +17,7 @@ main() {
     Linux\ aarch64 | Linux\ arm64) asset=gitceps-linux-arm64.tar.gz ;;
     *)
       echo "There's no ready-made Gitceps for $(uname -s) on $(uname -m)." >&2
-      echo "With Rust installed, build it: cargo install gitceps gitceps-window" >&2
+      echo "To build it yourself, see https://github.com/ArturVah/gitceps/blob/main/CONTRIBUTING.md" >&2
       exit 1 ;;
   esac
   if [ -e "$dest" ] && [ ! -x "$dest/bin/gitceps" ] && [ ! -d "$dest/hooks" ]; then
@@ -45,7 +45,7 @@ main() {
   tar -xzf "$tmp/$asset" -C "$tmp/new"
   if ! "$tmp/new/gitceps" --version >/dev/null 2>&1; then
     echo "This build of Gitceps doesn't run on this system, so nothing was installed." >&2
-    echo "With Rust installed, build it: cargo install gitceps gitceps-window" >&2
+    echo "To build it yourself, see https://github.com/ArturVah/gitceps/blob/main/CONTRIBUTING.md" >&2
     exit 1
   fi
 

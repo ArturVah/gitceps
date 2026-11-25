@@ -24,11 +24,10 @@ Windows, in PowerShell:
 irm https://raw.githubusercontent.com/ArturVah/gitceps/main/install.ps1 | iex
 ```
 
-Or with Homebrew, or with Rust's Cargo:
+Or with Homebrew:
 
 ```sh
 brew install ArturVah/tap/gitceps && gitceps on
-cargo install gitceps gitceps-window && gitceps on
 ```
 
 All of them turn Gitceps on for every repo. Each repo's own hooks keep running. Repos that set their own hooks folder, such as those using Husky, skip him.
@@ -78,9 +77,9 @@ gitceps update                 # get the latest version
 
 `enable` turns a switch back on, and `on` brings him back. `all` mutes the animation but keeps the secret check. Settings are stored in git config under `[gitceps]`, and `--here` writes to the current repo's `.git/config`. With the curl install on macOS and Linux, the command is `~/.gitceps/bin/gitceps`.
 
-`gitceps update` keeps him on or off, as he was. If Homebrew or Cargo installed him, update with `brew upgrade gitceps` or `cargo install gitceps gitceps-window` instead, then run `gitceps on` once more.
+`gitceps update` keeps him on or off, as he was. If Homebrew installed him, update with `brew upgrade gitceps` instead, then run `gitceps on` once more.
 
-To uninstall, run `gitceps off` first (it also removes the tour skill), then delete the `.gitceps` folder in your home folder, and run `brew uninstall gitceps` or `cargo uninstall gitceps gitceps-window` if that's how he came. Skipping `off` leaves git pointed at his hooks folder: your repos' own hooks keep running from there until the folder is deleted, and stop once it is.
+To uninstall, run `gitceps off` first (it also removes the tour skill), then delete the `.gitceps` folder in your home folder, and run `brew uninstall gitceps` if that's how he came. Skipping `off` leaves git pointed at his hooks folder: your repos' own hooks keep running from there until the folder is deleted, and stop once it is.
 
 ## Secret check
 

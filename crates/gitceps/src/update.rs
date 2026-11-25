@@ -7,8 +7,8 @@ use crate::paths;
 
 const INSTALLER: &str = "https://raw.githubusercontent.com/ArturVah/gitceps/main/install";
 
-/// Runs the installer again when it put this program in the Gitceps folder. Homebrew and Cargo keep track of
-/// what they installed, so an update there is theirs to make.
+/// Runs the installer again when it put this program in the Gitceps folder. Homebrew keeps track of what it
+/// installed, so an update there is its to make.
 pub fn update() -> Result<()> {
     let this = std::env::current_exe()
         .and_then(std::fs::canonicalize)
@@ -18,9 +18,8 @@ pub fn update() -> Result<()> {
         .is_ok_and(|folder| this.starts_with(folder));
     if !installed {
         bail!(
-            "This Gitceps in {} didn't come from the installer, so update it the way you installed it:\n\
-             Homebrew: brew upgrade gitceps\n\
-             Cargo:    cargo install gitceps gitceps-window",
+            "This Gitceps in {} didn't come from the installer, so update it the way you installed it \
+             (Homebrew: brew upgrade gitceps).",
             this.parent().unwrap_or(&this).display()
         );
     }
