@@ -98,6 +98,8 @@ tour PR #18
 walk me through my last commit
 ```
 
+<img src=".github/assets/tour.gif" alt="A tour of a pull request that adds password reset by email. A panel lists four steps beside the code for each one. Push Bro stands next to the panel: he zooms in when a fourth request is refused, nods at a hashed token, and shouts NEVER RACKED?! at a reset link that works twice." width="900">
+
 Say "tour" or "walk me through" rather than "review": "review PR #18" starts your agent's own code review instead. In Claude Code, `/gitceps-tour PR 18` picks the tour by name.
 
 Your agent reviews the change and writes a tour: a few steps in the order the code runs, the lines worth reading in each, and what they do. Gitceps checks that every changed line is either in a step or listed as skipped with a reason, then opens the tour in a panel that floats beside your editor, with the steps in a sidebar. Push Bro stands next to the panel and reacts to each step in his speech bubble: he nods along on plain code, cheers when a check refuses what it should, and zooms in for a "NOPE" on a real bug. Nothing moves until you click Got It, or press Return once the panel has focus. For a serious review, untick Push Bro to keep only the code and the explanations.
