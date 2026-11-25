@@ -1,6 +1,6 @@
 //! Reading from git: running it, and reading many files of a commit at once.
 use std::collections::HashMap;
-use std::io::Write;
+use std::io::{BufRead, BufReader, Write};
 use std::path::Path;
 use std::process::{Command, Stdio};
 
@@ -63,6 +63,52 @@ pub fn git_with_input(arguments: &[&str], repo: &Path, input: Option<&[u8]>) -> 
 
 pub fn git(arguments: &[&str], repo: &Path) -> Result<String> {
     Ok(String::from_utf8_lossy(&git_with_input(arguments, repo, None)?).into_owned())
+}
+
+/// A git command for where we are: the repository git started a hook for, or the folder a command was typed
+/// in. A hook's own input stays unread.
+fn here(arguments: &[&str]) -> Command {
+    let mut command = Command::new("git");
+    command
+        .args(["-c", "core.quotePath=false"])
+        .args(arguments)
+        .stdin(Stdio::null())
+        .stderr(Stdio::null());
+    command
+}
+
+/// What git prints where we are, without the line break at its end. Empty when git fails: a branch without an
+/// upstream or an option nobody set is an answer here, not an error.
+pub fn ask(arguments: &[&str]) -> String {
+    match here(arguments).output() {
+        Ok(output) if output.status.success() => String::from_utf8_lossy(&output.stdout).trim_end().to_string(),
+        _ => String::new(),
+    }
+}
+
+/// Whether a git command succeeds where we are.
+pub fn succeeds(arguments: &[&str]) -> bool {
+    here(arguments)
+        .stdout(Stdio::null())
+        .status()
+        .is_ok_and(|status| status.success())
+}
+
+/// Hands each line git prints to `more`, as it comes, and stops git once `more` returns false. Output of any
+/// size (every line of a repo's history, on its first push) costs no memory.
+pub fn each_line(arguments: &[&str], mut more: impl FnMut(&str) -> bool) {
+    let Ok(mut child) = here(arguments).stdout(Stdio::piped()).spawn() else {
+        return;
+    };
+    let mut output = BufReader::new(child.stdout.take().expect("stdout is piped"));
+    let mut line = Vec::new();
+    while output.read_until(b'\n', &mut line).is_ok_and(|read| read > 0)
+        && more(String::from_utf8_lossy(&line).trim_end_matches(['\n', '\r']))
+    {
+        line.clear();
+    }
+    let _ = child.kill();
+    let _ = child.wait();
 }
 
 /// Files as they are in a commit, as lines, read by one git process rather than one per file. A path that isn't

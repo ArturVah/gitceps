@@ -45,7 +45,7 @@ main() {
   # half-copied hooks folder. If an update stops between the renames, the next run restores the old copy.
   rm -rf "$next" "$dest.old"
   mkdir -p "$next"
-  cp -R "$tmp/app" "$tmp/overlay" "$tmp/tour" "$tmp/skills" "$tmp/hooks" "$tmp/bin" "$next/"
+  cp -R "$tmp/app" "$tmp/overlay" "$tmp/tour" "$tmp/hooks" "$tmp/bin" "$next/"
   echo "$version" > "$next/VERSION"
   [ ! -e "$dest" ] || mv "$dest" "$dest.old"
   mv "$next" "$dest"

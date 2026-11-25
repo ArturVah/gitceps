@@ -96,6 +96,16 @@ impl TourCheck {
         })
     }
 
+    /// The name of the repo's top folder, for the window's title bar. A tour may name the repo as "..", or as
+    /// a folder inside it.
+    pub fn repo_name(&self) -> String {
+        let top = git(&["rev-parse", "--show-toplevel"], &self.repo).map(|top| PathBuf::from(top.trim_end()));
+        let repo = top
+            .or_else(|_| self.repo.canonicalize())
+            .unwrap_or_else(|_| self.repo.clone());
+        repo.file_name().unwrap_or_default().to_string_lossy().into_owned()
+    }
+
     /// The page, or every problem found, so the agent can fix them all in one go.
     pub fn page(mut self) -> Result<Page> {
         let step_count = self.tour.steps.len();

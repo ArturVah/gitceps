@@ -7,17 +7,19 @@ description: Shows a pull request, a commit or a range of commits as a step-by-s
 
 You review a change and write a tour of it: a few steps in the order the code runs, each showing only the
 lines that matter, with a plain explanation and Push Bro's take. Gitceps checks the tour against the real
-diff and shows it in a floating panel on the Mac. The person reviewing reads every step, clicks "Got It" to
+diff and shows it in a floating panel. The person reviewing reads every step, clicks "Got It" to
 move on, and decides what to do. Your job is to make that review fast and correct, never to replace it.
 
 Do the review yourself, as described below. Don't hand it to another review command, skill or agent: the
 tour needs your own reading of the code, and a separate review would cost the user time and tokens twice.
 
-Run Gitceps with the `gitceps` in this skill's folder, a link to the Gitceps this skill belongs to. Before
-anything else, run `<this skill's folder>/gitceps status`. It prints `on` or `off`, and either is fine. If it
-fails, this copy of the skill has no Gitceps behind it: it was copied on its own, or Gitceps was removed. Tell
+Gitceps is the program at `{gitceps}`. Before anything else, run `"{gitceps}" status`. It prints `on` or
+`off`, and either is fine. If it fails, the Gitceps this skill came with is gone: it was moved or removed. Tell
 the user to install Gitceps from https://github.com/ArturVah/gitceps, which adds this skill by itself, and
 stop there, without looking for another copy of Gitceps.
+
+Tour files go in the tours folder: `gitceps-tours` inside the system's temporary folder, which is `$TMPDIR`,
+or `/tmp` where that isn't set, or `%TEMP%` on Windows. Coding agents' sandboxes let them write there.
 
 ## 1. Find base and head
 
@@ -36,11 +38,11 @@ Work in the repo's local clone, so you can read any file, not only the diff.
 
 Use full commit hashes in the tour file.
 
-**A tour that already exists is shown again, not redone.** If
-`$TMPDIR/gitceps-tours/<repo>-<PR number or short hash>.json` exists and its `base` and `head` are
-the hashes you just found, skip the review and show that file (step 6). A commit hash covers
-every line of the commit, so equal hashes mean the same code. Review again when either hash has changed (new
-commits, a force-push, a new target branch), or when the user asks for a fresh tour.
+**A tour that already exists is shown again, not redone.** If the tours folder has
+`<repo>-<PR number or short hash>.json` and its `base` and `head` are the hashes you just found, skip the
+review and show that file (step 6). A commit hash covers every line of the commit, so equal hashes mean the
+same code. Review again when either hash has changed (new commits, a force-push, a new target branch), or
+when the user asks for a fresh tour.
 
 ## 2. Review the change
 
@@ -85,8 +87,7 @@ Use at most 7 steps. A change that needs more is really several changes: write o
 
 ## 4. Write the tour file
 
-Save it as `$TMPDIR/gitceps-tours/<repo>-<PR number or short hash>.json`, creating the folder if needed. The
-temporary folder is one that coding agents' sandboxes let them write to.
+Save it in the tours folder as `<repo>-<PR number or short hash>.json`, creating the folder if needed.
 
 ```json
 {
@@ -149,6 +150,6 @@ at most each:
 
 ## 6. Show it
 
-Run `<this skill's folder>/gitceps tour <file>`. When it lists problems, fix the file and run it again until
+Run `"{gitceps}" tour <file>`. When it lists problems, fix the file and run it again until
 it says "Tour opened." Then tell the user in one or two sentences what the tour found: the most important
 finding, or that the change holds up.
