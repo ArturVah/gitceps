@@ -5,4 +5,5 @@ pub mod hooks;
 pub mod paths;
 pub mod switches;
 pub mod tour;
+pub mod update;
 pub mod window;

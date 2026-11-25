@@ -6,60 +6,63 @@
 set -euo pipefail
 
 main() {
-  local version="0.5.3" dest="$HOME/.gitceps"
+  local dest="$HOME/.gitceps" asset
+  # Where the release files are. Another address, or a folder as file:///path, serves a mirror or a test.
+  local from="${GITCEPS_RELEASE:-https://github.com/ArturVah/gitceps/releases/latest/download}"
 
-  if [ "$(uname)" != Darwin ]; then
-    echo "Gitceps only runs on macOS." >&2; exit 1
-  fi
-  [ -e "$dest" ] || [ ! -e "$dest.old" ] || mv "$dest.old" "$dest"   # an update cut off between its two renames
-  if [ -e "$dest" ] && [ ! -x "$dest/bin/gitceps" ]; then
+  case "$(uname -s) $(uname -m)" in
+    Darwin\ *)                     asset=gitceps-macos.tar.gz ;;
+    Linux\ x86_64)                 asset=gitceps-linux-x86_64.tar.gz ;;
+    Linux\ aarch64 | Linux\ arm64) asset=gitceps-linux-arm64.tar.gz ;;
+    *)
+      echo "There's no ready-made Gitceps for $(uname -s) on $(uname -m)." >&2
+      echo "With Rust installed, build it: cargo install gitceps gitceps-window" >&2
+      exit 1 ;;
+  esac
+  if [ -e "$dest" ] && [ ! -x "$dest/bin/gitceps" ] && [ ! -d "$dest/hooks" ]; then
     echo "$dest already exists and isn't Gitceps. Move it out of the way and run this again." >&2; exit 1
   fi
   local fresh=true was_on=false
-  if [ -e "$dest" ]; then
+  if [ -x "$dest/bin/gitceps" ]; then
     fresh=false
     [ "$("$dest/bin/gitceps" status 2>/dev/null)" = on ] && was_on=true
   fi
-  local turn_on="He's off. To turn him on: ~/.gitceps/bin/gitceps on"
-  if [ "$(cat "$dest/VERSION" 2>/dev/null)" = "$version" ]; then
-    echo "Gitceps $version is already installed."
-    $was_on || echo "$turn_on"
-    return
+
+  echo "Downloading Gitceps..."
+  tmp=$(mktemp -d)   # not local: the EXIT trap runs after main() has returned
+  trap 'rm -rf "$tmp"' EXIT
+  curl -fsSL "$from/$asset" -o "$tmp/$asset"
+  curl -fsSL "$from/SHA256SUMS" -o "$tmp/SHA256SUMS"
+  local sum
+  if command -v sha256sum >/dev/null; then sum=$(sha256sum "$tmp/$asset"); else sum=$(shasum -a 256 "$tmp/$asset"); fi
+  if ! grep -q "^${sum%% *}  $asset\$" "$tmp/SHA256SUMS"; then
+    echo "The download doesn't match its checksum, so nothing was installed." >&2; exit 1
   fi
-  local swift_error
-  if ! swift_error=$(xcrun --find swiftc 2>&1 >/dev/null); then
-    echo "Gitceps needs Apple's Swift compiler, and xcrun couldn't find it:" >&2
-    echo "  ${swift_error:-no details}" >&2
-    echo "If the Command Line Tools aren't installed: xcode-select --install" >&2
-    exit 1
+  mkdir "$tmp/new"
+  tar -xzf "$tmp/$asset" -C "$tmp/new"
+
+  # Each program is put in place with one rename, so a hook that runs meanwhile finds the old one or the new.
+  # What version 0.5 kept here goes: its hooks are rewritten by `gitceps on` below.
+  mkdir -p "$dest/bin"
+  local program
+  for program in gitceps gitceps-window; do
+    mv -f "$tmp/new/$program" "$dest/bin/$program"
+  done
+  rm -rf "$dest/app" "$dest/overlay" "$dest/tour" "$dest/skills" "$dest/VERSION"
+
+  local version; version=$("$dest/bin/gitceps" --version)
+  if [ "$(uname -s)" = Linux ] && ! ldconfig -p 2>/dev/null | grep -q 'libwebkit2gtk-4\.1'; then
+    echo "His windows need the WebKitGTK 4.1 library (libwebkit2gtk-4.1-0 on Debian and Ubuntu, webkit2gtk4.1 on Fedora)."
+    echo "Until it's installed the secret check still works, without the animations."
   fi
-
-  echo "Downloading Gitceps $version..."
-  tmp=$(mktemp -d) next="$dest.new"   # not local: the EXIT trap runs after main() has returned
-  trap 'rm -rf "$tmp" "$next"' EXIT
-  curl -fsSL "https://github.com/ArturVah/gitceps/releases/download/v$version/gitceps-$version.tar.gz" | tar -xz -C "$tmp" --strip-components 1
-
-  echo "Building the app..."
-  xcrun swiftc -O -swift-version 6 "$tmp"/app/*.swift -o "$tmp/app/gitceps-app" -framework AppKit -framework WebKit
-  # The new copy is built next to the old one and swapped in with two renames, so git never sees a
-  # half-copied hooks folder. If an update stops between the renames, the next run restores the old copy.
-  rm -rf "$next" "$dest.old"
-  mkdir -p "$next"
-  cp -R "$tmp/app" "$tmp/overlay" "$tmp/tour" "$tmp/hooks" "$tmp/bin" "$next/"
-  echo "$version" > "$next/VERSION"
-  [ ! -e "$dest" ] || mv "$dest" "$dest.old"
-  mv "$next" "$dest"
-  rm -rf "$dest.old"
-
-  if $fresh; then
-    "$dest/bin/gitceps" on
-    echo "To turn him off: ~/.gitceps/bin/gitceps off"
-  elif $was_on; then
-    "$dest/bin/gitceps" on >/dev/null   # points git at the new hooks again, in case a release moved them
-    echo "Gitceps is now $version."
+  if $fresh || $was_on; then
+    "$dest/bin/gitceps" on >/dev/null
+    echo "${version/gitceps/Gitceps} is installed and on for every repo. Try a git push."
+    $fresh && echo "To turn him off: ~/.gitceps/bin/gitceps off"
   else
-    echo "Gitceps is now $version. $turn_on"
+    echo "${version/gitceps/Gitceps} is installed. He's off. To turn him on: ~/.gitceps/bin/gitceps on"
   fi
+  return 0
 }
 
 main "$@"

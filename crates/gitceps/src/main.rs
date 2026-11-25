@@ -34,6 +34,8 @@ enum Command {
         #[arg(long)]
         here: bool,
     },
+    /// Installs the latest version over this one
+    Update,
     /// Shows a tour of a PR or commit that a coding agent wrote
     Tour { file: PathBuf },
     /// What git runs for each of its hooks while Gitceps is on
@@ -56,6 +58,7 @@ fn main() -> ExitCode {
         }
         Command::Enable { switch, here } => switches::set(switch, true, here),
         Command::Disable { switch, here } => switches::set(switch, false, here),
+        Command::Update => gitceps::update::update(),
         Command::Tour { file } => tour(&file),
         Command::Hook { name, arguments } => return ExitCode::from(hooks::run(&name, &arguments)),
     };

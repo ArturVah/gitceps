@@ -7,9 +7,14 @@ pub fn home() -> Result<PathBuf> {
     std::env::home_dir().context("can't find your home folder")
 }
 
+/// Gitceps' own folder, where the installer puts the programs too.
+pub fn folder() -> Result<PathBuf> {
+    Ok(home()?.join(".gitceps"))
+}
+
 /// The small scripts git runs while Gitceps is on, one per hook name.
 pub fn hooks() -> Result<PathBuf> {
-    Ok(home()?.join(".gitceps").join("hooks"))
+    Ok(folder()?.join("hooks"))
 }
 
 /// What the windows print, since nobody is there to read it when they run. A Mac keeps logs in one place.
@@ -18,6 +23,6 @@ pub fn log() -> Result<PathBuf> {
     Ok(if cfg!(target_os = "macos") {
         home.join("Library").join("Logs").join("gitceps.log")
     } else {
-        home.join(".gitceps").join("gitceps.log")
+        folder()?.join("gitceps.log")
     })
 }
